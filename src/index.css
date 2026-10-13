@@ -261,33 +261,238 @@ h3, .heading-3 {
   color: #D1D5DB;
 }
 
-/* Date Quick Selection Chips - Squadrato */
-.date-quick-chips {
+/* Date Carousel & Selector - Squadrato */
+.date-carousel-wrapper {
   display: flex;
+  align-items: center;
   gap: 8px;
-  margin-bottom: 8px;
+  width: 100%;
 }
 
-.date-chip-btn {
+.date-carousel-nav {
+  width: 38px;
+  height: 64px;
   background-color: #FFFFFF;
+  border: 1px solid var(--color-neutral-border);
+  border-radius: var(--border-radius);
+  color: #111111;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.date-carousel-nav:hover:not(:disabled) {
+  border-color: var(--color-accent-gold);
+  background-color: #FAF8F5;
+}
+
+.date-carousel-nav:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  border-color: #E5E7EB;
+}
+
+.date-carousel-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  flex: 1;
+}
+
+@media (max-width: 640px) {
+  .date-carousel-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.date-card {
+  min-height: 64px;
+  background-color: #FFFFFF;
+  border: 1px solid var(--color-neutral-border);
+  border-radius: var(--border-radius);
+  color: #111111;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 4px;
+  gap: 2px;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.date-card:hover:not(.closed) {
+  border-color: var(--color-accent-gold);
+}
+
+.date-card.active {
+  background-color: #111111;
+  border-color: #111111;
+  color: #FFFFFF;
+}
+
+.date-card .day-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: inherit;
+}
+
+.date-card .date-num {
+  font-size: 15px;
+  font-weight: 700;
+  color: inherit;
+}
+
+.date-card.closed {
+  background-color: #F8F8F8;
+  border-color: #E5E5E5;
+  color: #888888;
+}
+
+.date-card.closed .closed-tag {
+  font-size: 9px;
+  font-weight: 700;
+  color: #999999;
+  text-transform: uppercase;
+  margin-top: 1px;
+}
+
+.calendar-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
   border: 1px solid var(--color-neutral-border);
   border-radius: var(--border-radius);
   color: #111111;
   font-size: 13px;
   font-weight: 600;
-  padding: 8px 16px;
+  padding: 8px 14px;
   cursor: pointer;
   transition: all 0.15s ease;
+  margin-top: 8px;
+  align-self: flex-start;
 }
 
-.date-chip-btn:hover {
+.calendar-toggle-btn:hover {
+  border-color: var(--color-accent-gold);
+  background: #FAF8F5;
+}
+
+/* Service Selection Tabs (Saturday Lunch vs Dinner) */
+.service-toggle-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.service-tab-btn {
+  flex: 1;
+  padding: 10px 14px;
+  background-color: #FFFFFF;
+  border: 1px solid var(--color-neutral-border);
+  border-radius: var(--border-radius);
+  color: #111111;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.service-tab-btn:hover {
   border-color: var(--color-accent-gold);
 }
 
-.date-chip-btn.active {
+.service-tab-btn.active {
   background-color: #111111;
   border-color: #111111;
   color: #FFFFFF;
+}
+
+/* Dynamic Menu Card - Clarifying Menu Offer per Day */
+.menu-notice-card {
+  padding: 14px 16px;
+  background-color: #FAF8F5;
+  border-left: 3px solid var(--color-accent-gold);
+  border-top: 1px solid #ECE7DF;
+  border-right: 1px solid #ECE7DF;
+  border-bottom: 1px solid #ECE7DF;
+  border-radius: var(--border-radius);
+  margin-top: 12px;
+}
+
+.menu-notice-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #111111;
+  margin-bottom: 3px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.menu-notice-desc {
+  font-size: 13px;
+  color: #555555;
+  line-height: 1.45;
+}
+
+/* Notice & Alert Boxes (8+ guests & Closed days) */
+.alert-notice-box {
+  padding: 16px 18px;
+  background-color: #FAF8F5;
+  border: 1px solid var(--color-neutral-border);
+  border-radius: var(--border-radius);
+  margin-top: 12px;
+}
+
+.alert-notice-box.warning {
+  border-left: 3px solid var(--color-accent-gold);
+}
+
+.alert-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.alert-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background-color: #111111;
+  color: #FFFFFF;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: var(--border-radius);
+  transition: background-color 0.15s ease;
+}
+
+.alert-action-btn:hover {
+  background-color: #2B2B2B;
+}
+
+.alert-action-btn.secondary {
+  background-color: #FFFFFF;
+  color: #111111;
+  border: 1px solid var(--color-neutral-border);
+}
+
+.alert-action-btn.secondary:hover {
+  border-color: var(--color-accent-gold);
 }
 
 /* Date Selection - Squadrato */
@@ -295,6 +500,7 @@ h3, .heading-3 {
   position: relative;
   display: flex;
   align-items: center;
+  margin-top: 8px;
 }
 
 .date-input-icon {
@@ -484,6 +690,31 @@ h3, .heading-3 {
 .summary-accent-val {
   color: #111111;
   font-weight: 700;
+}
+
+.summary-trust-box {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background-color: var(--surface-section);
+  border: 1px solid var(--color-neutral-border);
+  border-radius: var(--border-radius);
+}
+
+.summary-trust-item {
+  display: flex;
+  align-items: center;
+  gap: 14px; /* Generous clean spacing between checkmark icon and text */
+  font-size: 14px;
+  color: #333333;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.summary-trust-item svg {
+  flex-shrink: 0;
 }
 
 .summary-restaurant-card {

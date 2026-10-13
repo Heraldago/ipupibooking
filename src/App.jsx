@@ -9,16 +9,54 @@ import {
   Clock, 
   MapPin, 
   Phone, 
+  Mail,
   ArrowRight, 
   ArrowLeft, 
+  ChevronLeft,
+  ChevronRight,
   CheckCircle2, 
   Utensils 
 } from 'lucide-react';
 
-const TIME_SLOTS = [
-  '17:30', '18:00', '18:30', '19:00', '19:30',
-  '20:00', '20:30', '21:00', '21:30'
+// Evening dinner slots (Wed - Sat: 17:30 - 21:00 every 15 min)
+const DINNER_SLOTS = [
+  '17:30', '17:45', '18:00', '18:15', '18:30', '18:45',
+  '19:00', '19:15', '19:30', '19:45', '20:00', '20:15',
+  '20:30', '20:45', '21:00'
 ];
+
+// Saturday lunch slots (12:00 - 14:00 every 15 min)
+const LUNCH_SLOTS = [
+  '12:00', '12:15', '12:30', '12:45',
+  '13:00', '13:15', '13:30', '13:45', '14:00'
+];
+
+// Check holiday closures
+const isHolidayClosed = (isoDateStr) => {
+  if (!isoDateStr) return null;
+  if (isoDateStr >= '2026-03-29' && isoDateStr <= '2026-04-07') {
+    return 'Påskelukket (29/03/2026 - 07/04/2026)';
+  }
+  if (isoDateStr >= '2026-06-28' && isoDateStr <= '2026-07-21') {
+    return 'Sommerlukket (28/06/2026 - 21/07/2026)';
+  }
+  if (isoDateStr >= '2026-12-20' && isoDateStr <= '2027-01-07') {
+    return 'Julelukket (20/12/2026 - 07/01/2027)';
+  }
+  return null;
+};
+
+// Day of week: 0: Sun, 1: Mon, 2: Tue, 3: Wed, 4: Thu, 5: Fri, 6: Sat
+const getDayOfWeek = (isoDateStr) => {
+  if (!isoDateStr) return 0;
+  const d = new Date(isoDateStr + 'T00:00:00');
+  return d.getDay();
+};
+
+const isNormallyClosed = (isoDateStr) => {
+  const dow = getDayOfWeek(isoDateStr);
+  return [0, 1, 2].includes(dow);
+};
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('client'); // 'client' | 'staff'
@@ -33,7 +71,10 @@ export default function App() {
     const today = new Date();
     return today.toISOString().split('T')[0];
   });
+  const [serviceType, setServiceType] = useState('dinner'); // 'dinner' | 'lunch'
   const [time, setTime] = useState('19:30');
+  const [carouselOffset, setCarouselOffset] = useState(0);
+  const [showCalendar, setShowCalendar] = useState(false);
   
   // Contact details & comprehensive special requests
   const [name, setName] = useState('');
@@ -101,6 +142,7 @@ export default function App() {
       booking_date: date,
       booking_time: time,
       guests_count: guests,
+      service_type: isSaturday ? serviceType : 'dinner',
       notes: notes,
       status: 'confirmed',
       created_at: new Date().toISOString()
@@ -164,13 +206,6 @@ export default function App() {
     d.setDate(d.getDate() + 1);
     return d.toISOString().split('T')[0];
   };
-  const getFridayStr = () => {
-    const d = new Date();
-    const day = d.getDay();
-    const diff = (5 - day + 7) % 7 || 7;
-    d.setDate(d.getDate() + diff);
-    return d.toISOString().split('T')[0];
-  };
 
   const formatDate = (isoDate) => {
     const locale = clientLang === 'da' ? 'da-DK' : 'en-GB';
@@ -188,6 +223,69 @@ export default function App() {
     } catch {
       return formatDate(isoDate);
     }
+  };
+
+  const isDateClosed = (isoDate) => {
+    return isNormallyClosed(isoDate) || !!isHolidayClosed(isoDate);
+  };
+
+  const isSaturday = getDayOfWeek(date) === 6;
+
+  const getCurrentSlots = () => {
+    if (isDateClosed(date)) return [];
+    if (isSaturday && serviceType === 'lunch') {
+      return LUNCH_SLOTS;
+    }
+    return DINNER_SLOTS;
+  };
+
+  const getMenuNotice = () => {
+    const hol = isHolidayClosed(date);
+    if (hol) {
+      return {
+        title: `${t.holidayClosedTitle}: ${hol}`,
+        desc: t.holidayClosedDesc,
+        isClosed: true
+      };
+    }
+    const dow = getDayOfWeek(date);
+    if ([0, 1, 2].includes(dow)) {
+      return {
+        title: t.closedDayTitle,
+        desc: t.closedDayDesc,
+        isClosed: true
+      };
+    }
+    if (dow === 3 || dow === 4) {
+      return {
+        title: clientLang === 'da' ? 'Onsdag & Torsdag: À la carte' : 'Wednesday & Thursday: À la carte',
+        desc: t.menuWedThu,
+        isClosed: false
+      };
+    }
+    if (dow === 5) {
+      return {
+        title: clientLang === 'da' ? 'Fredag: 3/4 Retter & À la carte' : 'Friday: 3/4 Courses & À la carte',
+        desc: t.menuFri,
+        isClosed: false
+      };
+    }
+    if (dow === 6) {
+      if (serviceType === 'lunch') {
+        return {
+          title: clientLang === 'da' ? 'Lørdagsfrokost (12:00 - 14:00)' : 'Saturday Lunch (12:00 - 14:00)',
+          desc: t.menuSatLunch,
+          isClosed: false
+        };
+      } else {
+        return {
+          title: clientLang === 'da' ? 'Lørdag Aften (17:30 - 21:00)' : 'Saturday Dinner (17:30 - 21:00)',
+          desc: t.menuSatDinner,
+          isClosed: false
+        };
+      }
+    }
+    return null;
   };
 
   return (
@@ -350,78 +448,157 @@ export default function App() {
                       </div>
 
                       <div className="form-group-stack">
-                        {/* Guest Picker */}
+                        {/* Guest Picker (1-7, 8+) */}
                         <div className="form-group">
                           <label className="form-label">
                             <Users size={18} color="var(--color-accent-gold)" />
                             {t.summaryGuests}
                           </label>
                           <div className="guest-selector-grid">
-                            {[1, 2, 3, 4, 5, 6, 7, 8, 10].map((num) => (
+                            {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
                               <button
                                 key={num}
                                 type="button"
                                 className={`guest-btn ${guests === num ? 'selected' : ''}`}
                                 onClick={() => setGuests(num)}
                               >
-                                {num}
+                                {num === 8 ? '8+' : num}
                                 <span className="sub">
-                                  {num === 10 ? t.groupLabel : num === 1 ? t.singleGuestLabel : t.guestLabel}
+                                  {num === 8 ? t.groupEightPlus : num === 1 ? t.singleGuestLabel : t.guestLabel}
                                 </span>
                               </button>
                             ))}
                           </div>
-                          {guests >= 10 && (
-                            <p style={{ fontSize: '13px', color: '#7A6F24', background: 'rgba(181, 166, 66, 0.12)', padding: '8px 12px', borderRadius: '0px', marginTop: '4px' }}>
-                              {t.groupAlert}
-                            </p>
+
+                          {/* 8+ Guest Alert Notice */}
+                          {guests >= 8 && (
+                            <div className="alert-notice-box warning">
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                                <Phone size={16} color="var(--color-accent-gold)" />
+                                <strong style={{ fontSize: '14px', color: '#111111' }}>{t.largeGroupTitle}</strong>
+                              </div>
+                              <p style={{ fontSize: '13px', color: '#444444', lineHeight: 1.5, margin: 0 }}>
+                                {t.largeGroupDesc}
+                              </p>
+                              <div className="alert-actions">
+                                <a href="tel:+4566111696" className="alert-action-btn">
+                                  <Phone size={14} />
+                                  <span>{t.callUs}</span>
+                                </a>
+                                <a href="mailto:info@ipupisiciliani.dk" className="alert-action-btn secondary">
+                                  <Mail size={14} />
+                                  <span>{t.emailUs}</span>
+                                </a>
+                              </div>
+                            </div>
                           )}
                         </div>
 
-                        {/* Date Picker */}
+                        {/* Date Picker with Carousel & Calendar Modal */}
                         <div className="form-group">
                           <label className="form-label">
                             <Calendar size={18} color="var(--color-accent-gold)" />
                             {t.dateLabel}
                           </label>
                           
-                          {/* Quick date chips */}
-                          <div className="date-quick-chips">
+                          {/* Horizontal Date Carousel with Squadrato Arrows */}
+                          <div className="date-carousel-wrapper">
                             <button
                               type="button"
-                              className={`date-chip-btn ${date === getTodayStr() ? 'active' : ''}`}
-                              onClick={() => setDate(getTodayStr())}
+                              className="date-carousel-nav"
+                              disabled={carouselOffset === 0}
+                              onClick={() => setCarouselOffset(Math.max(0, carouselOffset - 3))}
+                              aria-label="Previous dates"
                             >
-                              {t.today}
+                              <ChevronLeft size={20} />
                             </button>
+
+                            <div className="date-carousel-grid">
+                              {(() => {
+                                const dates = [];
+                                const base = new Date();
+                                const locale = clientLang === 'da' ? 'da-DK' : 'en-GB';
+                                for (let i = 0; i < 5; i++) {
+                                  const d = new Date();
+                                  d.setDate(base.getDate() + carouselOffset + i);
+                                  const iso = d.toISOString().split('T')[0];
+                                  const isSelected = date === iso;
+                                  const isToday = carouselOffset + i === 0;
+                                  const isTomorrow = carouselOffset + i === 1;
+                                  const closed = isDateClosed(iso);
+
+                                  const dayName = isToday 
+                                    ? t.today 
+                                    : isTomorrow 
+                                    ? t.tomorrow 
+                                    : d.toLocaleDateString(locale, { weekday: 'short' });
+                                  const dateNum = d.toLocaleDateString(locale, { day: 'numeric', month: 'short' });
+
+                                  dates.push(
+                                    <button
+                                      key={iso}
+                                      type="button"
+                                      className={`date-card ${isSelected ? 'active' : ''} ${closed ? 'closed' : ''}`}
+                                      onClick={() => {
+                                        setDate(iso);
+                                        const dow = d.getDay();
+                                        if (dow !== 6 && serviceType === 'lunch') {
+                                          setServiceType('dinner');
+                                          setTime('19:30');
+                                        }
+                                      }}
+                                    >
+                                      <span className="day-title">{dayName}</span>
+                                      <span className="date-num">{dateNum}</span>
+                                      {closed && <span className="closed-tag">Lukket</span>}
+                                    </button>
+                                  );
+                                }
+                                return dates;
+                              })()}
+                            </div>
+
                             <button
                               type="button"
-                              className={`date-chip-btn ${date === getTomorrowStr() ? 'active' : ''}`}
-                              onClick={() => setDate(getTomorrowStr())}
+                              className="date-carousel-nav"
+                              onClick={() => setCarouselOffset(carouselOffset + 3)}
+                              aria-label="Next dates"
                             >
-                              {t.tomorrow}
-                            </button>
-                            <button
-                              type="button"
-                              className={`date-chip-btn ${date === getFridayStr() ? 'active' : ''}`}
-                              onClick={() => setDate(getFridayStr())}
-                            >
-                              {t.thisFriday}
+                              <ChevronRight size={20} />
                             </button>
                           </div>
 
-                          <div className="date-input-wrapper">
-                            <span className="date-input-icon">
-                              <Calendar size={18} />
-                            </span>
-                            <input
-                              type="date"
-                              className="booking-input with-icon"
-                              value={date}
-                              min={getTodayStr()}
-                              onChange={(e) => setDate(e.target.value)}
-                            />
-                          </div>
+                          {/* Toggle Full Calendar / Pick Any Date */}
+                          <button
+                            type="button"
+                            className="calendar-toggle-btn"
+                            onClick={() => setShowCalendar(!showCalendar)}
+                          >
+                            <Calendar size={14} color="var(--color-accent-gold)" />
+                            <span>{showCalendar ? t.closeCalendar : t.openCalendar}</span>
+                          </button>
+
+                          {showCalendar && (
+                            <div className="date-input-wrapper">
+                              <span className="date-input-icon">
+                                <Calendar size={18} />
+                              </span>
+                              <input
+                                type="date"
+                                className="booking-input with-icon"
+                                value={date}
+                                min={getTodayStr()}
+                                onChange={(e) => {
+                                  setDate(e.target.value);
+                                  const dow = getDayOfWeek(e.target.value);
+                                  if (dow !== 6 && serviceType === 'lunch') {
+                                    setServiceType('dinner');
+                                    setTime('19:30');
+                                  }
+                                }}
+                              />
+                            </div>
+                          )}
 
                           <div className="date-preview-pill">
                             <Calendar size={14} />
@@ -429,43 +606,141 @@ export default function App() {
                           </div>
                         </div>
 
-                        {/* Time Slots */}
-                        <div className="form-group">
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-                            <label className="form-label">
-                              <Clock size={18} color="var(--color-accent-gold)" />
-                              {t.timeLabel}
-                            </label>
-                            <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-neutral-muted)' }}>
-                              {t.eveningService}
-                            </span>
-                          </div>
+                        {/* Menu Card for Selected Day */}
+                        {(() => {
+                          const menuNotice = getMenuNotice();
+                          if (!menuNotice) return null;
+                          return (
+                            <div className="menu-notice-card">
+                              <div className="menu-notice-title">
+                                <Utensils size={14} color="var(--color-accent-gold)" />
+                                <span>{menuNotice.title}</span>
+                              </div>
+                              <div className="menu-notice-desc">
+                                {menuNotice.desc}
+                              </div>
+                            </div>
+                          );
+                        })()}
 
-                          <div className="time-slot-grid">
-                            {TIME_SLOTS.map((slot) => (
-                              <button
-                                key={slot}
-                                type="button"
-                                className={`time-slot-btn ${time === slot ? 'selected' : ''}`}
-                                onClick={() => setTime(slot)}
-                              >
-                                {slot}
-                              </button>
-                            ))}
+                        {/* Time Slots or Closed / Holiday Notice */}
+                        {isDateClosed(date) ? (
+                          <div className="alert-notice-box">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                              <Clock size={16} color="var(--color-accent-gold)" />
+                              <strong style={{ fontSize: '14px', color: '#111111' }}>
+                                {isHolidayClosed(date) ? t.holidayClosedTitle : t.closedDayTitle}
+                              </strong>
+                            </div>
+                            <p style={{ fontSize: '13px', color: '#444444', lineHeight: 1.5, margin: 0 }}>
+                              {isHolidayClosed(date) 
+                                ? `${isHolidayClosed(date)}. ${t.holidayClosedDesc}`
+                                : t.closedDayDesc
+                              }
+                            </p>
+                            <div className="alert-actions">
+                              <a href="tel:+4566111696" className="alert-action-btn">
+                                <Phone size={14} />
+                                <span>{t.callUs}</span>
+                              </a>
+                              <a href="mailto:info@ipupisiciliani.dk" className="alert-action-btn secondary">
+                                <Mail size={14} />
+                                <span>{t.emailUs}</span>
+                              </a>
+                            </div>
                           </div>
-                        </div>
+                        ) : (
+                          <div className="form-group">
+                            {/* Saturday Service Selection (Lunch vs Dinner) */}
+                            {isSaturday && (
+                              <div>
+                                <label className="form-label" style={{ marginBottom: '8px' }}>
+                                  <Utensils size={16} color="var(--color-accent-gold)" />
+                                  {t.serviceLabel}
+                                </label>
+                                <div className="service-toggle-row">
+                                  <button
+                                    type="button"
+                                    className={`service-tab-btn ${serviceType === 'lunch' ? 'active' : ''}`}
+                                    onClick={() => {
+                                      setServiceType('lunch');
+                                      if (!LUNCH_SLOTS.includes(time)) setTime('12:30');
+                                    }}
+                                  >
+                                    <Utensils size={14} />
+                                    <span>{t.lunchService}</span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className={`service-tab-btn ${serviceType === 'dinner' ? 'active' : ''}`}
+                                    onClick={() => {
+                                      setServiceType('dinner');
+                                      if (!DINNER_SLOTS.includes(time)) setTime('19:30');
+                                    }}
+                                  >
+                                    <Clock size={14} />
+                                    <span>{t.eveningService}</span>
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                              <label className="form-label">
+                                <Clock size={18} color="var(--color-accent-gold)" />
+                                {t.timeLabel}
+                              </label>
+                              <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-neutral-muted)' }}>
+                                {isSaturday && serviceType === 'lunch' ? 'Frokost (12:00 - 14:00)' : 'Køkken: 17:30 - 21:00'}
+                              </span>
+                            </div>
+
+                            <div className="time-slot-grid">
+                              {getCurrentSlots().map((slot) => (
+                                <button
+                                  key={slot}
+                                  type="button"
+                                  className={`time-slot-btn ${time === slot ? 'selected' : ''}`}
+                                  onClick={() => setTime(slot)}
+                                >
+                                  {slot}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
 
                     <div style={{ marginTop: '28px' }}>
-                      <button
-                        type="button"
-                        className="btn-primary"
-                        onClick={() => setStep(2)}
-                      >
-                        <span>{t.btnProceed}</span>
-                        <ArrowRight size={18} />
-                      </button>
+                      {guests >= 8 ? (
+                        <button
+                          type="button"
+                          className="btn-primary"
+                          disabled
+                          style={{ opacity: 0.85, cursor: 'not-allowed' }}
+                        >
+                          <span>{clientLang === 'da' ? 'Ring eller send e-mail ved 8+ selskaber' : 'Call or email for parties of 8+'}</span>
+                        </button>
+                      ) : isDateClosed(date) ? (
+                        <button
+                          type="button"
+                          className="btn-primary"
+                          disabled
+                          style={{ opacity: 0.85, cursor: 'not-allowed' }}
+                        >
+                          <span>{clientLang === 'da' ? 'Lukket på den valgte dato' : 'Closed on this date'}</span>
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          className="btn-primary"
+                          onClick={() => setStep(2)}
+                        >
+                          <span>{t.btnProceed}</span>
+                          <ArrowRight size={18} />
+                        </button>
+                      )}
                     </div>
                   </div>
                 )}
@@ -589,6 +864,16 @@ export default function App() {
                     <span className="val summary-accent-val">{time}</span>
                   </div>
 
+                  {isSaturday && (
+                    <div className="summary-spec-item">
+                      <span className="label-group">
+                        <Utensils size={18} color="var(--color-accent-gold)" />
+                        <span>{t.summaryService}</span>
+                      </span>
+                      <span className="val">{serviceType === 'lunch' ? t.lunchService : t.eveningService}</span>
+                    </div>
+                  )}
+
                   {/* Trust guarantees */}
                   <div className="summary-trust-box">
                     <div className="summary-trust-item">
@@ -703,7 +988,7 @@ export default function App() {
                               <span style={{ background: '#FFF5F6', padding: '4px 8px', borderRadius: '3px', border: '1px solid #FDB4BF', display: 'inline-block' }}>
                                 {res.notes}
                               </span>
-                            ) : '—'}
+                            ) : '-'}
                           </td>
                           <td style={{ padding: '14px 10px' }}>
                             <span style={{ padding: '4px 8px', background: 'var(--surface-section)', border: '1px solid #D1D5DB', borderRadius: '3px', fontSize: '12px', fontWeight: 700 }}>

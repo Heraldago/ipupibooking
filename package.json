@@ -1,19 +1,22 @@
 {
-  "name": "ipupisiciliani-booking",
+  "name": "ipupibooking",
+  "private": true,
   "version": "1.0.0",
-  "description": "Sistema di prenotazione visivo per I Pupi Siciliani - Odense",
-  "main": "index.html",
+  "type": "module",
   "scripts": {
-    "start": "npx serve -l 3000 .",
-    "dev": "python3 -m http.server 3000"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
-  "keywords": [
-    "restaurant",
-    "booking",
-    "floorplan",
-    "odense",
-    "sicilian"
-  ],
-  "author": "I Pupi Siciliani",
-  "license": "ISC"
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.1",
+    "canvas-confetti": "^1.9.4",
+    "lucide-react": "^1.16.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "vite": "^6.2.0"
+  }
 }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import TablePlan, { TABLES, PRESET_COMBOS } from './components/TablePlan';
 import { supabase, isSupabaseConfigured } from './supabaseClient';
+import { clientTranslations, adminTranslations } from './i18n';
 import confetti from 'canvas-confetti';
 
 const TIME_SLOTS = [
@@ -8,15 +9,13 @@ const TIME_SLOTS = [
   '20:00', '20:30', '21:00', '21:30'
 ];
 
-const SEATING_PREFERENCES = [
-  { id: 'any', label: 'Nessuna preferenza', desc: 'Assegnazione automatica del miglior tavolo' },
-  { id: 'windows', label: 'Finestre su Vindegade', desc: 'Tavoli vista strada luminosi' },
-  { id: 'main', label: 'Sala Principale', desc: 'Atmosfera centrale accogliente' },
-  { id: 'saletta', label: 'Saletta Riservata', desc: 'Ambiente intimo o tavolate private' }
-];
-
 export default function App() {
   const [activeTab, setActiveTab] = useState('client'); // 'client' | 'staff'
+  const [clientLang, setClientLang] = useState('da');   // 'da' | 'en'
+  const [adminLang, setAdminLang] = useState('it');     // 'it' | 'en'
+
+  const t = activeTab === 'client' ? clientTranslations[clientLang] : adminTranslations[adminLang];
+
   const [step, setStep] = useState(1);
   const [guests, setGuests] = useState(2);
   const [date, setDate] = useState(() => {
@@ -85,6 +84,8 @@ export default function App() {
     e.preventDefault();
     setLoading(true);
 
+    const prefLabel = t.preferences ? t.preferences[preference]?.label : preference;
+
     const bookingData = {
       customer_name: name,
       customer_phone: phone,
@@ -92,7 +93,7 @@ export default function App() {
       booking_date: date,
       booking_time: time,
       guests_count: guests,
-      preference_area: SEATING_PREFERENCES.find(p => p.id === preference)?.label || 'Indifferente',
+      preference_area: prefLabel,
       notes: notes,
       status: 'confirmed',
       created_at: new Date().toISOString()
@@ -117,7 +118,7 @@ export default function App() {
       });
     } catch (err) {
       console.error(err);
-      alert('Si è verificato un errore, riprova.');
+      alert('Error occurred, please try again.');
     } finally {
       setLoading(false);
     }
@@ -129,11 +130,11 @@ export default function App() {
     const icsContent = [
       'BEGIN:VCALENDAR',
       'VERSION:2.0',
-      'PRODID:-//I Pupi Siciliani//Booking System//IT',
+      'PRODID:-//I Pupi Siciliani//Booking System//EN',
       'BEGIN:VEVENT',
-      `SUMMARY:Cena a I Pupi Siciliani (${guests} persone)`,
-      `DESCRIPTION:Zona richiesta: ${confirmedBooking.preference_area}. Note: ${notes || 'Nessuna'}`,
-      'LOCATION:Vindegade 71, 5000 Odense C, Danimarca',
+      `SUMMARY:Dinner at I Pupi Siciliani (${guests} guests)`,
+      `DESCRIPTION:Area: ${confirmedBooking.preference_area}. Notes: ${notes || 'None'}`,
+      'LOCATION:Vindegade 71, 5000 Odense C, Denmark',
       `DTSTART:${startIso}`,
       `DTEND:${startIso}`,
       'STATUS:CONFIRMED',
@@ -145,15 +146,97 @@ export default function App() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `prenotazione-ipupi-${date}.ics`;
+    a.download = `ipupi-reservation-${date}.ics`;
     a.click();
     URL.revokeObjectURL(url);
   };
 
+  const formatDate = (isoDate) => {
+    const locale = clientLang === 'da' ? 'da-DK' : 'en-GB';
+    return new Date(isoDate).toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' });
+  };
+
   return (
     <div className="app-layout">
-      {/* Top Bar with View Switcher */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
+      {/* Top Header Controls: Language Switcher + View Switcher */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
+        
+        {/* Language Switcher */}
+        <div style={{ display: 'flex', gap: '6px' }}>
+          {activeTab === 'client' ? (
+            <>
+              <button
+                type="button"
+                onClick={() => setClientLang('da')}
+                style={{
+                  padding: '6px 14px',
+                  borderRadius: '999px',
+                  border: `1.5px solid ${clientLang === 'da' ? 'var(--accent-espresso)' : 'var(--border-light)'}`,
+                  background: clientLang === 'da' ? 'var(--accent-espresso)' : 'var(--bg-white)',
+                  color: clientLang === 'da' ? '#FFFFFF' : 'var(--text-dark)',
+                  fontSize: '0.82rem',
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+              >
+                🇩🇰 Dansk
+              </button>
+              <button
+                type="button"
+                onClick={() => setClientLang('en')}
+                style={{
+                  padding: '6px 14px',
+                  borderRadius: '999px',
+                  border: `1.5px solid ${clientLang === 'en' ? 'var(--accent-espresso)' : 'var(--border-light)'}`,
+                  background: clientLang === 'en' ? 'var(--accent-espresso)' : 'var(--bg-white)',
+                  color: clientLang === 'en' ? '#FFFFFF' : 'var(--text-dark)',
+                  fontSize: '0.82rem',
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+              >
+                🇬🇧 English
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={() => setAdminLang('it')}
+                style={{
+                  padding: '6px 14px',
+                  borderRadius: '999px',
+                  border: `1.5px solid ${adminLang === 'it' ? 'var(--accent-espresso)' : 'var(--border-light)'}`,
+                  background: adminLang === 'it' ? 'var(--accent-espresso)' : 'var(--bg-white)',
+                  color: adminLang === 'it' ? '#FFFFFF' : 'var(--text-dark)',
+                  fontSize: '0.82rem',
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+              >
+                🇮🇹 Italiano
+              </button>
+              <button
+                type="button"
+                onClick={() => setAdminLang('en')}
+                style={{
+                  padding: '6px 14px',
+                  borderRadius: '999px',
+                  border: `1.5px solid ${adminLang === 'en' ? 'var(--accent-espresso)' : 'var(--border-light)'}`,
+                  background: adminLang === 'en' ? 'var(--accent-espresso)' : 'var(--bg-white)',
+                  color: adminLang === 'en' ? '#FFFFFF' : 'var(--text-dark)',
+                  fontSize: '0.82rem',
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+              >
+                🇬🇧 English
+              </button>
+            </>
+          )}
+        </div>
+
+        {/* View Switcher */}
         <div style={{
           background: 'var(--bg-white)',
           padding: '4px',
@@ -167,7 +250,7 @@ export default function App() {
             type="button"
             onClick={() => setActiveTab('client')}
             style={{
-              padding: '8px 20px',
+              padding: '8px 18px',
               borderRadius: '999px',
               border: 'none',
               background: activeTab === 'client' ? 'var(--accent-espresso)' : 'transparent',
@@ -178,13 +261,13 @@ export default function App() {
               transition: 'all 0.2s ease'
             }}
           >
-            Prenotazione Tavolo
+            {activeTab === 'client' ? t.viewBooking : 'Bordreservation / Booking'}
           </button>
           <button
             type="button"
             onClick={() => setActiveTab('staff')}
             style={{
-              padding: '8px 20px',
+              padding: '8px 18px',
               borderRadius: '999px',
               border: 'none',
               background: activeTab === 'staff' ? 'var(--accent-espresso)' : 'transparent',
@@ -195,38 +278,33 @@ export default function App() {
               transition: 'all 0.2s ease'
             }}
           >
-            ⚙︎ Gestione Sala Staff
+            {activeTab === 'staff' ? t.viewStaff : '⚙︎ Staff / Admin'}
           </button>
         </div>
       </div>
 
       {/* Brand Header */}
       <header className="brand-header">
-        <div className="brand-badge">Trattoria Autentica • Odense</div>
+        <div className="brand-badge">{t.badge || 'Trattoria Autentica • Odense'}</div>
         <h1 className="brand-title">I Pupi Siciliani</h1>
-        <p className="brand-subtitle">
-          {activeTab === 'client' 
-            ? 'Cucina tradizionale siciliana e calda accoglienza a Vindegade. Riserva il tuo posto con pochi click.'
-            : 'Pannello di controllo interno per gestione tavoli modulari e capienze.'}
-        </p>
+        <p className="brand-subtitle">{t.subtitle || t.desc}</p>
       </header>
 
-      {/* CLIENT FACING FLOW (Clean, No modular complexity) */}
+      {/* CLIENT FACING FLOW (Danish / English) */}
       {activeTab === 'client' && (
         <>
-          {/* Stepper */}
           <nav className="stepper-nav">
             <button
               className={`step-indicator ${step === 1 ? 'active' : 'done'}`}
               onClick={() => setStep(1)}
             >
-              <span className="step-number">1</span> Dettagli Prenotazione
+              {t.step1}
             </button>
             <button
               className={`step-indicator ${step === 2 ? 'active' : ''}`}
               onClick={() => setStep(2)}
             >
-              <span className="step-number">2</span> Dati & Richieste
+              {t.step2}
             </button>
           </nav>
 
@@ -235,8 +313,8 @@ export default function App() {
               {step === 1 && (
                 <div className="lux-card">
                   <div className="card-heading">
-                    <h2 className="card-title">Quanti ospiti sarete?</h2>
-                    <p className="card-desc">Scegli il numero di persone per preparare la sala</p>
+                    <h2 className="card-title">{t.guestsTitle}</h2>
+                    <p className="card-desc">{t.guestsDesc}</p>
                   </div>
 
                   {/* Big Guest Picker */}
@@ -249,13 +327,15 @@ export default function App() {
                         onClick={() => setGuests(num)}
                       >
                         {num}
-                        <span className="label">{num === 10 ? 'Gruppo' : num === 1 ? 'Persona' : 'Ospiti'}</span>
+                        <span className="label">
+                          {num === 10 ? t.groupLabel : num === 1 ? t.singleGuestLabel : t.guestLabel}
+                        </span>
                       </button>
                     ))}
                   </div>
 
                   <div className="form-field">
-                    <label className="form-label">Data desiderata</label>
+                    <label className="form-label">{t.dateLabel}</label>
                     <input
                       type="date"
                       className="lux-input"
@@ -266,7 +346,7 @@ export default function App() {
                   </div>
 
                   <div className="form-field">
-                    <label className="form-label">Orario preferito</label>
+                    <label className="form-label">{t.timeLabel}</label>
                     <div className="time-grid">
                       {TIME_SLOTS.map((slot) => (
                         <button
@@ -282,26 +362,26 @@ export default function App() {
                   </div>
 
                   <div className="form-field" style={{ marginTop: '28px' }}>
-                    <label className="form-label">Zona o posizione preferita (opzionale)</label>
+                    <label className="form-label">{t.preferenceLabel}</label>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                      {SEATING_PREFERENCES.map((pref) => (
+                      {Object.entries(t.preferences).map(([key, val]) => (
                         <div
-                          key={pref.id}
-                          onClick={() => setPreference(pref.id)}
+                          key={key}
+                          onClick={() => setPreference(key)}
                           style={{
                             padding: '16px',
-                            background: preference === pref.id ? 'var(--bg-rose-card)' : 'var(--bg-white)',
-                            border: `1.5px solid ${preference === pref.id ? 'var(--accent-rose)' : 'var(--border-light)'}`,
+                            background: preference === key ? 'var(--bg-rose-card)' : 'var(--bg-white)',
+                            border: `1.5px solid ${preference === key ? 'var(--accent-rose)' : 'var(--border-light)'}`,
                             borderRadius: 'var(--radius-md)',
                             cursor: 'pointer',
                             transition: 'all 0.2s ease'
                           }}
                         >
                           <div style={{ fontWeight: 600, color: 'var(--text-dark)', marginBottom: '4px' }}>
-                            {pref.label}
+                            {val.label}
                           </div>
                           <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                            {pref.desc}
+                            {val.desc}
                           </div>
                         </div>
                       ))}
@@ -314,7 +394,7 @@ export default function App() {
                     style={{ marginTop: '32px' }}
                     onClick={() => setStep(2)}
                   >
-                    Procedi con i Tuoi Dati →
+                    {t.btnProceed}
                   </button>
                 </div>
               )}
@@ -322,16 +402,16 @@ export default function App() {
               {step === 2 && (
                 <form onSubmit={handleBooking} className="lux-card">
                   <div className="card-heading">
-                    <h2 className="card-title">Dati di Contatto & Richieste</h2>
-                    <p className="card-desc">Inserisci i tuoi recapiti e qualsiasi richiesta speciale per il tavolo</p>
+                    <h2 className="card-title">{t.contactTitle}</h2>
+                    <p className="card-desc">{t.contactDesc}</p>
                   </div>
 
                   <div className="form-field">
-                    <label className="form-label">Nome e Cognome *</label>
+                    <label className="form-label">{t.nameLabel}</label>
                     <input
                       type="text"
                       required
-                      placeholder="es. Mario Rossi"
+                      placeholder={t.namePlaceholder}
                       className="lux-input"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
@@ -340,22 +420,22 @@ export default function App() {
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                     <div className="form-field">
-                      <label className="form-label">Numero di Telefono *</label>
+                      <label className="form-label">{t.phoneLabel}</label>
                       <input
                         type="tel"
                         required
-                        placeholder="+45 12 34 56 78"
+                        placeholder={t.phonePlaceholder}
                         className="lux-input"
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
                       />
                     </div>
                     <div className="form-field">
-                      <label className="form-label">Indirizzo Email *</label>
+                      <label className="form-label">{t.emailLabel}</label>
                       <input
                         type="email"
                         required
-                        placeholder="nome@esempio.it"
+                        placeholder={t.emailPlaceholder}
                         className="lux-input"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
@@ -364,17 +444,17 @@ export default function App() {
                   </div>
 
                   <div className="form-field">
-                    <label className="form-label">Richieste speciali o posizione specifica</label>
+                    <label className="form-label">{t.notesLabel}</label>
                     <textarea
                       rows="3"
-                      placeholder="Es. Vorremmo un tavolo appartato, festeggiamo un compleanno, seggiolino per bambini..."
+                      placeholder={t.notesPlaceholder}
                       className="lux-input"
                       style={{ height: 'auto', padding: '16px 18px', lineHeight: 1.4 }}
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
                     />
                     <small style={{ color: 'var(--text-muted)', fontSize: '0.8rem', display: 'block', marginTop: '6px' }}>
-                      Faremo il possibile per soddisfare la tua richiesta in base alla disponibilità della sala.
+                      {t.notesHelp}
                     </small>
                   </div>
 
@@ -385,43 +465,43 @@ export default function App() {
                       style={{ background: '#FAF2EE', color: 'var(--text-dark)', border: '1px solid var(--border-light)' }}
                       onClick={() => setStep(1)}
                     >
-                      ← Indietro
+                      {t.btnBack}
                     </button>
                     <button
                       type="submit"
                       disabled={loading}
                       className="cta-button"
                     >
-                      {loading ? 'Conferma in corso...' : 'Conferma la Prenotazione ✓'}
+                      {loading ? t.btnSubmitting : t.btnConfirm}
                     </button>
                   </div>
                 </form>
               )}
             </main>
 
-            {/* Right Sticky Summary */}
+            {/* Right Summary */}
             <aside className="summary-card">
-              <h3 className="summary-heading">Riepilogo</h3>
+              <h3 className="summary-heading">{t.summaryTitle}</h3>
 
               <div className="summary-item">
-                <span className="label">Ospiti</span>
-                <span className="value">{guests} persone</span>
+                <span className="label">{t.summaryGuests}</span>
+                <span className="value">{guests} {t.guestLabel.toLowerCase()}</span>
               </div>
 
               <div className="summary-item">
-                <span className="label">Data</span>
-                <span className="value">{new Date(date).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                <span className="label">{t.summaryDate}</span>
+                <span className="value">{formatDate(date)}</span>
               </div>
 
               <div className="summary-item">
-                <span className="label">Orario</span>
+                <span className="label">{t.summaryTime}</span>
                 <span className="value">{time}</span>
               </div>
 
               <div className="summary-item">
-                <span className="label">Zona</span>
+                <span className="label">{t.summaryArea}</span>
                 <span className="value" style={{ color: 'var(--accent-rose)' }}>
-                  {SEATING_PREFERENCES.find(p => p.id === preference)?.label}
+                  {t.preferences[preference]?.label}
                 </span>
               </div>
 
@@ -435,26 +515,24 @@ export default function App() {
         </>
       )}
 
-      {/* STAFF / INTERNAL MANAGEMENT (Where modular floor plan lives!) */}
+      {/* STAFF / ADMIN VIEW (Italian / English) */}
       {activeTab === 'staff' && (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '32px' }}>
           <div className="lux-card">
             <div className="card-heading" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
               <div>
-                <h2 className="card-title">Gestione Sala & Tavoli Modulari</h2>
-                <p className="card-desc">
-                  Configura e unisci i tavoli per gestire la capienza, i grupponi e le prenotazioni in arrivo.
-                </p>
+                <h2 className="card-title">{t.title}</h2>
+                <p className="card-desc">{t.desc}</p>
               </div>
               <div style={{ background: '#FAF2EE', padding: '10px 18px', borderRadius: '12px', fontWeight: 600, color: 'var(--text-dark)' }}>
-                Tavoli selezionati: <span style={{ color: 'var(--accent-rose)' }}>{staffSelectedTables.map(t => `T${t}`).join(', ') || 'Nessuno'}</span> ({calculateStaffCapacity()} pax)
+                {t.selectedTables}: <span style={{ color: 'var(--accent-rose)' }}>{staffSelectedTables.map(t => `T${t}`).join(', ') || t.none}</span> ({calculateStaffCapacity()} {t.pax})
               </div>
             </div>
 
             {/* Modular Combinations presets for staff */}
             <div style={{ marginBottom: '20px' }}>
               <span style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--text-muted)' }}>
-                Unioni veloci sala & saletta:
+                {t.quickCombos}
               </span>
               <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '10px' }}>
                 {PRESET_COMBOS.map((combo) => (
@@ -489,20 +567,20 @@ export default function App() {
 
           {/* Incoming Reservations Table */}
           <div className="lux-card">
-            <h2 className="card-title" style={{ marginBottom: '16px' }}>Prenotazioni Ricevute</h2>
+            <h2 className="card-title" style={{ marginBottom: '16px' }}>{t.reservationsTitle}</h2>
             {reservations.length === 0 ? (
-              <p style={{ color: 'var(--text-muted)' }}>Nessuna prenotazione memorizzata al momento.</p>
+              <p style={{ color: 'var(--text-muted)' }}>{t.noReservations}</p>
             ) : (
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.92rem' }}>
                   <thead>
                     <tr style={{ borderBottom: '2px solid var(--border-light)', color: 'var(--text-muted)' }}>
-                      <th style={{ padding: '12px 10px' }}>Ospite</th>
-                      <th style={{ padding: '12px 10px' }}>Coperti</th>
-                      <th style={{ padding: '12px 10px' }}>Data & Ora</th>
-                      <th style={{ padding: '12px 10px' }}>Zona Preferita</th>
-                      <th style={{ padding: '12px 10px' }}>Note / Richieste</th>
-                      <th style={{ padding: '12px 10px' }}>Stato</th>
+                      <th style={{ padding: '12px 10px' }}>{t.thGuest}</th>
+                      <th style={{ padding: '12px 10px' }}>{t.thGuestsCount}</th>
+                      <th style={{ padding: '12px 10px' }}>{t.thDateTime}</th>
+                      <th style={{ padding: '12px 10px' }}>{t.thArea}</th>
+                      <th style={{ padding: '12px 10px' }}>{t.thNotes}</th>
+                      <th style={{ padding: '12px 10px' }}>{t.thStatus}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -512,17 +590,17 @@ export default function App() {
                           {res.customer_name}<br />
                           <small style={{ fontWeight: 400, color: 'var(--text-muted)' }}>{res.customer_phone}</small>
                         </td>
-                        <td style={{ padding: '14px 10px' }}>{res.guests_count} pax</td>
-                        <td style={{ padding: '14px 10px' }}>{res.booking_date} alle {res.booking_time}</td>
+                        <td style={{ padding: '14px 10px' }}>{res.guests_count} {t.pax}</td>
+                        <td style={{ padding: '14px 10px' }}>{res.booking_date} {res.booking_time}</td>
                         <td style={{ padding: '14px 10px', color: 'var(--accent-rose)', fontWeight: 500 }}>
-                          {res.preference_area || 'Indifferente'}
+                          {res.preference_area || '—'}
                         </td>
                         <td style={{ padding: '14px 10px', maxWidth: '280px', color: res.notes ? 'var(--text-dark)' : 'var(--text-muted)' }}>
                           {res.notes || '—'}
                         </td>
                         <td style={{ padding: '14px 10px' }}>
                           <span style={{ padding: '4px 10px', background: '#FAF2EE', color: 'var(--accent-rose)', borderRadius: '999px', fontSize: '0.8rem', fontWeight: 600 }}>
-                            {res.status || 'Confermata'}
+                            {res.status || t.statusConfirmed}
                           </span>
                         </td>
                       </tr>
@@ -540,20 +618,19 @@ export default function App() {
         <div className="modal-overlay">
           <div className="modal-content">
             <div className="success-badge">✓</div>
-            <h2 style={{ fontSize: '2.2rem', marginBottom: '8px' }}>Prenotazione Ricevuta!</h2>
+            <h2 style={{ fontSize: '2.2rem', marginBottom: '8px' }}>{t.modalTitle}</h2>
             <p style={{ color: 'var(--text-muted)', marginBottom: '24px' }}>
-              Grazie {confirmedBooking.customer_name}, la tua prenotazione per{' '}
-              <strong>{new Date(date).toLocaleDateString('it-IT', { day: 'numeric', month: 'long' })}</strong> alle{' '}
-              <strong>{time}</strong> è confermata.
+              {t.modalThanks} <strong>{confirmedBooking.customer_name}</strong>. {t.modalSub}{' '}
+              <strong>{formatDate(date)}</strong> {t.summaryTime.toLowerCase()} <strong>{time}</strong>.
             </p>
 
             <div style={{ background: '#FAF2EE', padding: '16px', borderRadius: '14px', marginBottom: '24px', textAlign: 'left' }}>
-              <div style={{ fontSize: '0.9rem', marginBottom: '6px' }}><strong>Ospiti:</strong> {confirmedBooking.guests_count} persone</div>
-              <div style={{ fontSize: '0.9rem', marginBottom: '6px' }}><strong>Preferenza:</strong> {confirmedBooking.preference_area}</div>
+              <div style={{ fontSize: '0.9rem', marginBottom: '6px' }}><strong>{t.modalGuests}:</strong> {confirmedBooking.guests_count}</div>
+              <div style={{ fontSize: '0.9rem', marginBottom: '6px' }}><strong>{t.modalArea}:</strong> {confirmedBooking.preference_area}</div>
               {confirmedBooking.notes && (
-                <div style={{ fontSize: '0.9rem', marginBottom: '6px' }}><strong>Note:</strong> {confirmedBooking.notes}</div>
+                <div style={{ fontSize: '0.9rem', marginBottom: '6px' }}><strong>{t.modalNotes}:</strong> {confirmedBooking.notes}</div>
               )}
-              <div style={{ fontSize: '0.9rem' }}><strong>Email inviata a:</strong> {confirmedBooking.customer_email}</div>
+              <div style={{ fontSize: '0.9rem' }}><strong>{t.modalEmailSent}:</strong> {confirmedBooking.customer_email}</div>
             </div>
 
             <div style={{ display: 'flex', gap: '12px' }}>
@@ -563,7 +640,7 @@ export default function App() {
                 style={{ background: '#FAF2EE', color: 'var(--text-dark)' }}
                 onClick={downloadICS}
               >
-                📅 Salva in Calendario
+                {t.btnCalendar}
               </button>
               <button
                 type="button"
@@ -573,7 +650,7 @@ export default function App() {
                   setStep(1);
                 }}
               >
-                Nuova Prenotazione
+                {t.btnNewBooking}
               </button>
             </div>
           </div>

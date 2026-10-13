@@ -23,9 +23,8 @@ export default function App() {
     return today.toISOString().split('T')[0];
   });
   const [time, setTime] = useState('19:30');
-  const [preference, setPreference] = useState('any');
   
-  // Contact details
+  // Contact details & comprehensive special requests
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
@@ -84,8 +83,6 @@ export default function App() {
     e.preventDefault();
     setLoading(true);
 
-    const prefLabel = t.preferences ? t.preferences[preference]?.label : preference;
-
     const bookingData = {
       customer_name: name,
       customer_phone: phone,
@@ -93,7 +90,6 @@ export default function App() {
       booking_date: date,
       booking_time: time,
       guests_count: guests,
-      preference_area: prefLabel,
       notes: notes,
       status: 'confirmed',
       created_at: new Date().toISOString()
@@ -132,9 +128,9 @@ export default function App() {
       'VERSION:2.0',
       'PRODID:-//I Pupi Siciliani//Booking System//EN',
       'BEGIN:VEVENT',
-      `SUMMARY:Dinner at I Pupi Siciliani (${guests} guests)`,
-      `DESCRIPTION:Area: ${confirmedBooking.preference_area}. Notes: ${notes || 'None'}`,
-      'LOCATION:Vindegade 71, 5000 Odense C, Denmark',
+      `SUMMARY:I Pupi Siciliani (${guests} ${t.guestLabel})`,
+      `DESCRIPTION:Notes: ${notes || 'None'}`,
+      'LOCATION:Vindegade 73, 5000 Odense C, Denmark',
       `DTSTART:${startIso}`,
       `DTEND:${startIso}`,
       'STATUS:CONFIRMED',
@@ -238,7 +234,7 @@ export default function App() {
             )}
           </div>
 
-          {/* View Mode */}
+          {/* View Switcher */}
           <div style={{ display: 'flex', gap: '8px' }}>
             <button
               type="button"
@@ -275,16 +271,13 @@ export default function App() {
           </div>
         </div>
 
-        {/* Editorial Heading Structure */}
+        {/* Brand Header with DALI Font */}
         <header style={{ textAlign: 'center', marginBottom: '50px' }}>
-          <div style={{ color: 'var(--color-accent-gold)', fontWeight: 700, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '10px' }}>
-            ★ ★ ★ ★ ★ &nbsp; Trattoria Autentica &nbsp; ★ ★ ★ ★ ★
-          </div>
-          <h1>{t.title}</h1>
+          <h1 className="brand-title" style={{ fontFamily: 'DALI, serif' }}>{t.title}</h1>
           <h2>{t.subtitle || t.desc}</h2>
         </header>
 
-        {/* CLIENT FACING FLOW */}
+        {/* CLIENT FACING FLOW (Clean, No table selection, Clear requests/allergy box) */}
         {activeTab === 'client' && (
           <div className="booking-layout-grid">
             <main>
@@ -364,24 +357,7 @@ export default function App() {
                       </div>
                     </div>
 
-                    {/* Seating Preference */}
-                    <div className="form-group" style={{ marginTop: '10px' }}>
-                      <label className="form-label">{t.preferenceLabel}</label>
-                      <div className="pref-grid">
-                        {Object.entries(t.preferences).map(([key, val]) => (
-                          <div
-                            key={key}
-                            onClick={() => setPreference(key)}
-                            className={`pref-card ${preference === key ? 'selected' : ''}`}
-                          >
-                            <div className="pref-card-title">{val.label}</div>
-                            <div className="pref-card-desc">{val.desc}</div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div style={{ marginTop: '16px' }}>
+                    <div style={{ marginTop: '20px' }}>
                       <button
                         type="button"
                         className="btn-primary"
@@ -439,16 +415,17 @@ export default function App() {
                       </div>
                     </div>
 
+                    {/* Special requests / allergies / high-chair / table comments box */}
                     <div className="form-group">
                       <label className="form-label">{t.notesLabel}</label>
                       <textarea
-                        rows="3"
+                        rows="4"
                         placeholder={t.notesPlaceholder}
                         className="booking-textarea"
                         value={notes}
                         onChange={(e) => setNotes(e.target.value)}
                       />
-                      <small style={{ color: 'var(--color-neutral-muted)', fontSize: '13px', marginTop: '4px' }}>
+                      <small style={{ color: 'var(--color-neutral-muted)', fontSize: '13px', marginTop: '4px', lineHeight: 1.5 }}>
                         {t.notesHelp}
                       </small>
                     </div>
@@ -493,21 +470,16 @@ export default function App() {
                 <span className="val summary-accent-val">{time}</span>
               </div>
 
-              <div className="summary-spec-item">
-                <span className="label">{t.summaryArea}</span>
-                <span className="val">{t.preferences[preference]?.label}</span>
-              </div>
-
               <div style={{ marginTop: '24px', padding: '16px', backgroundColor: 'var(--surface-section)', borderRadius: '3px', fontSize: '14px', lineHeight: 1.6 }}>
                 <strong>I Pupi Siciliani</strong><br />
-                Vindegade 71, 5000 Odense C<br />
-                <span style={{ color: 'var(--color-accent-gold)', fontWeight: 700 }}>Tel: +45 66 12 11 00</span>
+                Vindegade 73, 5000 Odense C<br />
+                <span style={{ color: 'var(--color-accent-gold)', fontWeight: 700 }}>Tel: +45 66 11 16 96</span>
               </div>
             </aside>
           </div>
         )}
 
-        {/* STAFF & MODULAR MANAGEMENT */}
+        {/* STAFF & MODULAR TABLE MANAGEMENT */}
         {activeTab === 'staff' && (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '32px' }}>
             <div className="booking-card">
@@ -556,7 +528,7 @@ export default function App() {
               />
             </div>
 
-            {/* Reservations Table */}
+            {/* Reservations Table with Special Requests & Allergies clearly visible */}
             <div className="booking-card">
               <h3 style={{ marginBottom: '16px' }}>{t.reservationsTitle}</h3>
               {reservations.length === 0 ? (
@@ -569,7 +541,6 @@ export default function App() {
                         <th style={{ padding: '12px 10px' }}>{t.thGuest}</th>
                         <th style={{ padding: '12px 10px' }}>{t.thGuestsCount}</th>
                         <th style={{ padding: '12px 10px' }}>{t.thDateTime}</th>
-                        <th style={{ padding: '12px 10px' }}>{t.thArea}</th>
                         <th style={{ padding: '12px 10px' }}>{t.thNotes}</th>
                         <th style={{ padding: '12px 10px' }}>{t.thStatus}</th>
                       </tr>
@@ -583,11 +554,12 @@ export default function App() {
                           </td>
                           <td style={{ padding: '14px 10px' }}>{res.guests_count} {t.pax}</td>
                           <td style={{ padding: '14px 10px' }}>{res.booking_date} {res.booking_time}</td>
-                          <td style={{ padding: '14px 10px', color: 'var(--color-accent-gold)', fontWeight: 700 }}>
-                            {res.preference_area || '—'}
-                          </td>
-                          <td style={{ padding: '14px 10px', maxWidth: '260px' }}>
-                            {res.notes || '—'}
+                          <td style={{ padding: '14px 10px', maxWidth: '320px', color: res.notes ? '#333333' : 'var(--color-neutral-muted)' }}>
+                            {res.notes ? (
+                              <span style={{ background: '#FFF5F6', padding: '4px 8px', borderRadius: '3px', border: '1px solid #FDB4BF', display: 'inline-block' }}>
+                                {res.notes}
+                              </span>
+                            ) : '—'}
                           </td>
                           <td style={{ padding: '14px 10px' }}>
                             <span style={{ padding: '4px 8px', background: 'var(--surface-section)', border: '1px solid #D1D5DB', borderRadius: '3px', fontSize: '12px', fontWeight: 700 }}>
@@ -608,7 +580,6 @@ export default function App() {
         {confirmedBooking && (
           <div className="spec-modal-overlay">
             <div className="spec-modal-box">
-              <div className="star-rating" style={{ marginBottom: '10px' }}>★ ★ ★ ★ ★</div>
               <h2 style={{ fontSize: '32px', marginBottom: '8px' }}>{t.modalTitle}</h2>
               <p style={{ color: 'var(--color-neutral-muted)', marginBottom: '24px' }}>
                 {t.modalThanks} <strong>{confirmedBooking.customer_name}</strong>. {t.modalSub}{' '}
@@ -617,7 +588,6 @@ export default function App() {
 
               <div style={{ backgroundColor: 'var(--surface-section)', border: '1px solid #D1D5DB', borderRadius: '3px', padding: '16px', marginBottom: '24px', textAlign: 'left', fontSize: '14px' }}>
                 <div><strong>{t.modalGuests}:</strong> {confirmedBooking.guests_count}</div>
-                <div><strong>{t.modalArea}:</strong> {confirmedBooking.preference_area}</div>
                 {confirmedBooking.notes && <div><strong>{t.modalNotes}:</strong> {confirmedBooking.notes}</div>}
                 <div><strong>{t.modalEmailSent}:</strong> {confirmedBooking.customer_email}</div>
               </div>

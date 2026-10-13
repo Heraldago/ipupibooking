@@ -1,9 +1,18 @@
+@font-face {
+  font-family: 'DALI';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/Dali_400.woff') format('woff'),
+       url('https://www.ipupisiciliani.dk/wp-content/uploads/breakdance/fonts/Dali_400.woff') format('woff');
+}
+
 /* Design System Variables */
 :root {
   /* Layout & Grid */
   --container-max-width: 1120px;
   --column-gutter: 32px;
-  --section-padding-v: 100px;
+  --section-padding-v: 80px;
   --form-gap: 16px;
   --border-radius: 3px;
 
@@ -26,6 +35,7 @@
   --shadow-card-hover: rgba(0, 0, 0, 0.08) 0 4px 12px;
 
   /* Typography Hierarchy */
+  --font-brand-dali: 'DALI', serif;
   --font-serif: 'Cormorant Garamond', Georgia, serif;
   --font-sans: 'Lato', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
@@ -47,14 +57,14 @@ body {
 }
 
 /* Typography Scale */
-h1, .heading-1 {
-  font-family: var(--font-serif);
-  font-size: 50px;
-  font-weight: 500;
-  line-height: 1.2;
-  margin-bottom: 25px;
+h1, .heading-1, .brand-title {
+  font-family: var(--font-brand-dali);
+  font-size: clamp(40px, 6vw, 64px);
+  font-weight: 400;
+  line-height: 1.15;
+  margin-bottom: 20px;
   color: var(--color-neutral-text);
-  letter-spacing: -0.01em;
+  letter-spacing: 0.02em;
 }
 
 h2, .heading-2 {

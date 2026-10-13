@@ -1,38 +1,40 @@
 import React from 'react';
 
 export const TABLES = [
-  // Top Wall (Vindegade windows)
-  { id: '9', name: 'Tavolo 9', pax: 2, x: 260, y: 70, w: 60, h: 60, zone: 'Vindegade (Vetrate)' },
-  { id: '10', name: 'Tavolo 10', pax: 2, x: 380, y: 70, w: 60, h: 60, zone: 'Vindegade (Vetrate)' },
-  { id: '11', name: 'Tavolo 11', pax: 2, x: 500, y: 70, w: 60, h: 60, zone: 'Vindegade (Vetrate)' },
+  // Vetrate / Parete Superiore
+  { id: '9', name: 'Tavolo 9', pax: 2, x: 105, y: 110, w: 58, h: 58, zone: 'Vetrate Sinistra' },
+  { id: '10', name: 'Tavolo 10', pax: 2, x: 195, y: 110, w: 56, h: 58, zone: 'Ingresso / Vetrate' },
+  { id: '11', name: 'Tavolo 11', pax: 2, x: 253, y: 110, w: 56, h: 58, zone: 'Ingresso / Vetrate' },
 
-  // Left Wall
-  { id: '7', name: 'Tavolo 7', pax: 2, x: 90, y: 190, w: 60, h: 60, zone: 'Sala Principale' },
-  { id: '8', name: 'Tavolo 8', pax: 2, x: 90, y: 280, w: 60, h: 60, zone: 'Sala Principale' },
+  // Parete Sinistra
+  { id: '7', name: 'Tavolo 7', pax: 2, x: 105, y: 225, w: 58, h: 56, zone: 'Parete Sinistra' },
+  { id: '8', name: 'Tavolo 8', pax: 2, x: 105, y: 283, w: 58, h: 56, zone: 'Parete Sinistra' },
 
-  // Center
-  { id: '5', name: 'Tavolo 5', pax: 2, x: 320, y: 240, w: 60, h: 60, zone: 'Sala Principale' },
-  { id: '6', name: 'Tavolo 6', pax: 2, x: 440, y: 240, w: 60, h: 60, zone: 'Sala Principale' },
+  // Centro Sala (Staggered / Diagonale)
+  { id: '5', name: 'Tavolo 5', pax: 2, x: 450, y: 200, w: 58, h: 58, zone: 'Centro Sala' },
+  { id: '6', name: 'Tavolo 6', pax: 2, x: 375, y: 305, w: 58, h: 58, zone: 'Centro Sala' },
 
-  // Right Wall
-  { id: '4', name: 'Tavolo 4', pax: 2, x: 600, y: 190, w: 60, h: 60, zone: 'Sala Principale' },
-  { id: '3', name: 'Tavolo 3', pax: 2, x: 600, y: 280, w: 60, h: 60, zone: 'Sala Principale' },
-  { id: '2', name: 'Tavolo 2', pax: 2, x: 600, y: 370, w: 60, h: 60, zone: 'Sala Principale' },
+  // Parete Destra
+  { id: '2', name: 'Tavolo 2', pax: 2, x: 590, y: 100, w: 58, h: 58, zone: 'Vetrate Destra' },
+  { id: '3', name: 'Tavolo 3', pax: 2, x: 590, y: 200, w: 58, h: 58, zone: 'Parete Destra' },
+  { id: '4', name: 'Tavolo 4', pax: 2, x: 590, y: 305, w: 58, h: 58, zone: 'Parete Destra' },
 
-  // Saletta (Private room)
-  { id: '14', name: 'Tavolo 14', pax: 2, x: 740, y: 150, w: 60, h: 60, zone: 'Saletta Riservata' },
-  { id: '12', name: 'Tavolo 12', pax: 2, x: 740, y: 250, w: 60, h: 60, zone: 'Saletta Riservata' },
-  { id: '13', name: 'Tavolo 13', pax: 2, x: 740, y: 340, w: 60, h: 60, zone: 'Saletta Riservata' },
+  // Zona Fondo / Saletta (accanto a corridoio cucina)
+  { id: '14', name: 'Tavolo 14', pax: 2, x: 235, y: 465, w: 58, h: 58, zone: 'Zona Fondo' },
+  { id: '12', name: 'Tavolo 12', pax: 2, x: 235, y: 670, w: 56, h: 58, zone: 'Saletta Fondo' },
+  { id: '13', name: 'Tavolo 13', pax: 2, x: 293, y: 670, w: 56, h: 58, zone: 'Saletta Fondo' }
 ];
 
 export const PRESET_COMBOS = [
-  { id: 'combo-2-3', label: 'Tavoli 2 + 3 (Uniti - 4 pax)', tables: ['2', '3'], capacity: 4, zone: 'Sala Principale' },
-  { id: 'combo-7-8', label: 'Tavoli 7 + 8 (Uniti - 4 pax)', tables: ['7', '8'], capacity: 4, zone: 'Sala Principale' },
-  { id: 'combo-10-11', label: 'Tavoli 10 + 11 (Uniti - 4 pax)', tables: ['10', '11'], capacity: 4, zone: 'Vetrate Vindegade' },
-  { id: 'combo-9-10-11', label: 'Tavoli 9 + 10 + 11 (Tavolata 6 pax)', tables: ['9', '10', '11'], capacity: 6, zone: 'Vetrate Vindegade' },
-  { id: 'combo-4-5-6', label: 'Tavoli 4 + 5 + 6 (Gruppo 7/8 pax)', tables: ['4', '5', '6'], capacity: 8, zone: 'Sala Principale' },
-  { id: 'combo-12-13', label: 'Saletta 12 + 13 (Uniti - 5 pax)', tables: ['12', '13'], capacity: 5, zone: 'Saletta Riservata' },
-  { id: 'combo-12-13-14', label: 'Saletta Intera (12+13+14 - 8/10 pax)', tables: ['12', '13', '14'], capacity: 8, zone: 'Saletta Riservata' },
+  { id: 'combo-10-11', label: 'Tavoli 10 + 11 (Uniti - 4 pax)', tables: ['10', '11'], capacity: 4, zone: 'Ingresso / Vetrate' },
+  { id: 'combo-7-8', label: 'Tavoli 7 + 8 (Uniti - 4 pax)', tables: ['7', '8'], capacity: 4, zone: 'Parete Sinistra' },
+  { id: 'combo-12-13', label: 'Tavoli 12 + 13 (Uniti - 4 pax)', tables: ['12', '13'], capacity: 4, zone: 'Saletta Fondo' },
+  { id: 'combo-2-3', label: 'Tavoli 2 + 3 (Uniti - 4 pax)', tables: ['2', '3'], capacity: 4, zone: 'Parete Destra' },
+  { id: 'combo-3-4', label: 'Tavoli 3 + 4 (Uniti - 4 pax)', tables: ['3', '4'], capacity: 4, zone: 'Parete Destra' },
+  { id: 'combo-2-3-4', label: 'Tavolata 2 + 3 + 4 (6 pax)', tables: ['2', '3', '4'], capacity: 6, zone: 'Parete Destra' },
+  { id: 'combo-9-10-11', label: 'Tavolata 9 + 10 + 11 (6 pax)', tables: ['9', '10', '11'], capacity: 6, zone: 'Vetrate / Ingresso' },
+  { id: 'combo-12-13-14', label: 'Saletta 12 + 13 + 14 (6 pax)', tables: ['12', '13', '14'], capacity: 6, zone: 'Saletta Fondo' },
+  { id: 'combo-5-6', label: 'Tavoli 5 + 6 (Uniti - 4 pax)', tables: ['5', '6'], capacity: 4, zone: 'Centro Sala' }
 ];
 
 export default function TablePlan({ selectedTables, onToggleTable, guests, occupiedTables = [] }) {
@@ -40,55 +42,110 @@ export default function TablePlan({ selectedTables, onToggleTable, guests, occup
   const isOccupied = (id) => occupiedTables.includes(id);
 
   return (
-    <div style={{ background: '#FFF5F6', border: '1px solid #D1D5DB', borderRadius: '3px', padding: '24px 16px', overflowX: 'auto' }}>
-      <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', alignItems: 'center', marginBottom: '16px', fontSize: '13px', color: '#666666', flexWrap: 'wrap' }}>
+    <div style={{ background: '#F8F9FA', border: '1px solid #D1D5DB', padding: '24px 16px', overflowX: 'auto' }}>
+      {/* Legend & status */}
+      <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', alignItems: 'center', marginBottom: '20px', fontSize: '13px', color: '#666666', flexWrap: 'wrap' }}>
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ width: '12px', height: '12px', background: '#FFFFFF', border: '1px solid #D1D5DB', borderRadius: '2px' }}></span> Libero
+          <span style={{ width: '14px', height: '14px', background: '#4A3F35', border: '1px solid #333333' }}></span> Libero
         </span>
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ width: '12px', height: '12px', background: '#FDB4BF', border: '1px solid #333333', borderRadius: '2px' }}></span> Selezionato
+          <span style={{ width: '14px', height: '14px', background: '#FDB4BF', border: '1px solid #333333' }}></span> Selezionato
         </span>
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ width: '12px', height: '12px', background: '#E5E7EB', borderRadius: '2px' }}></span> Occupato
+          <span style={{ width: '14px', height: '14px', background: '#E5E7EB', border: '1px solid #D1D5DB' }}></span> Occupato
         </span>
-        <span style={{ color: '#B5A642', fontWeight: 700 }}>
-          ✦ Modularità attiva ({guests} pax)
+        <span style={{ color: 'var(--color-accent-gold-dark, #8F822E)', fontWeight: 700 }}>
+          Modularita attiva: {guests} pax
         </span>
       </div>
 
-      <svg viewBox="0 0 860 480" style={{ width: '100%', maxWidth: '780px', margin: '0 auto', display: 'block' }}>
-        {/* Room Boundaries */}
-        <rect x="30" y="20" width="670" height="430" rx="3" fill="#FFFFFF" stroke="#D1D5DB" strokeWidth="1.5" />
+      <svg viewBox="0 0 760 840" style={{ width: '100%', maxWidth: '720px', margin: '0 auto', display: 'block', background: '#FFFFFF', border: '1px solid #E5E7EB' }}>
+        {/* Exterior dark boundary context like drawing */}
+        <defs>
+          <pattern id="doorHatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+            <line x1="0" y1="0" x2="0" y2="6" stroke="#E5E7EB" strokeWidth="2" />
+          </pattern>
+        </defs>
+
+        {/* Floor polygon (Main room + bottom alcove + kitchen corridor) */}
+        {/* Top wall: 70 to 680 at Y=70 */}
+        {/* Right wall: from (680, 70) down to (680, 780) */}
+        {/* Bottom wall: from (680, 780) to (200, 780) */}
+        {/* Left wall: from (200, 780) up to (200, 420), then steps left to (70, 420), up to (70, 70) */}
+        <polygon
+          points="70,70 680,70 680,780 200,780 200,420 70,420"
+          fill="#FFFFFF"
+          stroke="#1E1E1E"
+          strokeWidth="3"
+        />
+
+        {/* Cutout area outside bottom-left corner */}
+        <polygon
+          points="0,420 200,420 200,840 0,840"
+          fill="#F3F4F6"
+        />
+        <line x1="70" y1="420" x2="200" y2="420" stroke="#1E1E1E" strokeWidth="3" />
+        <line x1="200" y1="420" x2="200" y2="780" stroke="#1E1E1E" strokeWidth="3" />
+        <line x1="200" y1="780" x2="680" y2="780" stroke="#1E1E1E" strokeWidth="3" />
+
+        {/* Dividing Wall: corridoio bagno + cucina */}
+        {/* Horizontal segment from (365, 430) to (680, 430) */}
+        <line x1="365" y1="430" x2="680" y2="430" stroke="#1E1E1E" strokeWidth="4" />
         
-        {/* Vindegade Windows */}
-        <path d="M 230 20 L 590 20" stroke="#B5A642" strokeWidth="4" strokeDasharray="8 6" />
-        <text x="410" y="42" fill="#B5A642" fontSize="12" fontWeight="700" textAnchor="middle" letterSpacing="0.08em" fontFamily="Lato, sans-serif">
-          FINESTRE SU VINDEGADE
+        {/* Vertical segment: top section (430 to 550) */}
+        <line x1="365" y1="430" x2="365" y2="550" stroke="#1E1E1E" strokeWidth="4" />
+        
+        {/* Door opening between 550 and 640 */}
+        <path d="M 365 550 A 60 60 0 0 1 365 610" fill="none" stroke="#9CA3AF" strokeWidth="1.5" strokeDasharray="3 3" />
+        
+        {/* Vertical segment: bottom section (640 to 780) */}
+        <line x1="365" y1="640" x2="365" y2="780" stroke="#1E1E1E" strokeWidth="4" />
+
+        {/* Corridor & Kitchen Text */}
+        <text x="522" y="585" fill="#1E1E1E" fontSize="18" fontWeight="600" textAnchor="middle" fontFamily="system-ui, sans-serif">
+          corridoio bagno
+        </text>
+        <text x="522" y="618" fill="#1E1E1E" fontSize="18" fontWeight="600" textAnchor="middle" fontFamily="system-ui, sans-serif">
+          + cucina
         </text>
 
-        {/* Entrance */}
-        <text x="60" y="440" fill="#666666" fontSize="11" fontWeight="700" letterSpacing="0.06em" fontFamily="Lato, sans-serif">
-          INGRESSO / GUARDAROBA
+        {/* Top Header Labels */}
+        {/* Vetrate (Left) */}
+        <text x="134" y="44" fill="#1E1E1E" fontSize="18" fontWeight="600" textAnchor="middle" fontFamily="system-ui, sans-serif">
+          Vetrate
         </text>
+        <line x1="85" y1="70" x2="185" y2="70" stroke="#B5A642" strokeWidth="5" />
 
-        {/* Saletta Boundary */}
-        <rect x="710" y="100" width="130" height="320" rx="3" fill="#FFF5F6" stroke="#D1D5DB" strokeWidth="1.5" strokeDasharray="6 4" />
-        <text x="775" y="126" fill="#333333" fontSize="13" fontWeight="700" textAnchor="middle" letterSpacing="0.05em" fontFamily="Lato, sans-serif">
-          SALETTA
+        {/* Entrata (Center) */}
+        <text x="325" y="44" fill="#1E1E1E" fontSize="18" fontWeight="600" textAnchor="middle" fontFamily="system-ui, sans-serif">
+          Entrata
         </text>
-        <text x="775" y="140" fill="#666666" fontSize="10" textAnchor="middle" fontFamily="Lato, sans-serif">
-          Riservata (fino a 8 pax)
+        <line x1="300" y1="70" x2="350" y2="70" stroke="#FFFFFF" strokeWidth="5" />
+        <polygon points="325,78 320,68 330,68" fill="#1E1E1E" />
+
+        {/* Vetrate (Right) */}
+        <text x="619" y="44" fill="#1E1E1E" fontSize="18" fontWeight="600" textAnchor="middle" fontFamily="system-ui, sans-serif">
+          Vetrate
         </text>
+        <line x1="570" y1="70" x2="665" y2="70" stroke="#B5A642" strokeWidth="5" />
 
-        {/* Connection hints for modular combos */}
-        <line x1="630" y1="310" x2="630" y2="370" stroke="#B5A642" strokeWidth="2" strokeDasharray="4 3" opacity="0.7" />
-        <line x1="120" y1="250" x2="120" y2="280" stroke="#B5A642" strokeWidth="2" strokeDasharray="4 3" opacity="0.7" />
-        <line x1="770" y1="210" x2="770" y2="340" stroke="#B5A642" strokeWidth="2" strokeDasharray="4 3" opacity="0.7" />
+        {/* Connection indicators for modular tables */}
+        {/* 10 & 11 bridge */}
+        <line x1="251" y1="110" x2="251" y2="168" stroke="#333333" strokeWidth="1" strokeDasharray="3 2" opacity="0.6" />
+        {/* 7 & 8 bridge */}
+        <line x1="105" y1="281" x2="163" y2="281" stroke="#333333" strokeWidth="1" strokeDasharray="3 2" opacity="0.6" />
+        {/* 12 & 13 bridge */}
+        <line x1="291" y1="670" x2="291" y2="728" stroke="#333333" strokeWidth="1" strokeDasharray="3 2" opacity="0.6" />
 
-        {/* Table Nodes */}
+        {/* Tables */}
         {TABLES.map((t) => {
           const selected = isSelected(t.id);
           const occupied = isOccupied(t.id);
+
+          const fillColor = occupied ? '#E5E7EB' : selected ? '#FDB4BF' : '#4A3F35';
+          const textColor = occupied ? '#9CA3AF' : selected ? '#1E1E1E' : '#FFFFFF';
+          const strokeColor = selected ? '#1E1E1E' : occupied ? '#D1D5DB' : '#333333';
+          const strokeWidth = selected ? '3' : '1.5';
 
           return (
             <g
@@ -96,44 +153,29 @@ export default function TablePlan({ selectedTables, onToggleTable, guests, occup
               style={{ cursor: occupied ? 'not-allowed' : 'pointer' }}
               onClick={() => !occupied && onToggleTable(t.id)}
             >
-              {/* Chair dots */}
-              <circle cx={t.x + t.w / 2} cy={t.y - 8} r="5" fill={selected ? '#333333' : '#D1D5DB'} />
-              <circle cx={t.x + t.w / 2} cy={t.y + t.h + 8} r="5" fill={selected ? '#333333' : '#D1D5DB'} />
-
-              {/* Table Body */}
+              {/* Table Rectangle (squadrato, no border-radius) */}
               <rect
                 x={t.x}
                 y={t.y}
                 width={t.w}
                 height={t.h}
-                rx="3"
-                fill={selected ? '#FDB4BF' : '#FFFFFF'}
-                stroke={selected ? '#333333' : '#D1D5DB'}
-                strokeWidth={selected ? '2' : '1'}
+                fill={fillColor}
+                stroke={strokeColor}
+                strokeWidth={strokeWidth}
               />
 
-              {/* Table ID and capacity */}
+              {/* Table Number */}
               <text
                 x={t.x + t.w / 2}
-                y={t.y + 26}
-                fill="#333333"
-                fontSize="15"
+                y={t.y + t.h / 2 + 7}
+                fill={textColor}
+                fontSize="20"
                 fontWeight="700"
                 textAnchor="middle"
-                fontFamily="Lato, sans-serif"
+                fontFamily="system-ui, sans-serif"
+                style={{ userSelect: 'none', pointerEvents: 'none' }}
               >
-                T{t.id}
-              </text>
-              <text
-                x={t.x + t.w / 2}
-                y={t.y + 44}
-                fill={selected ? '#333333' : '#666666'}
-                fontSize="11"
-                fontWeight="700"
-                textAnchor="middle"
-                fontFamily="Lato, sans-serif"
-              >
-                {t.pax} pax
+                {t.id}
               </text>
             </g>
           );

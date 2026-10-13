@@ -240,22 +240,10 @@ export default function App() {
   };
 
   const getMenuNotice = () => {
-    const hol = isHolidayClosed(date);
-    if (hol) {
-      return {
-        title: `${t.holidayClosedTitle}: ${hol}`,
-        desc: t.holidayClosedDesc,
-        isClosed: true
-      };
-    }
+    // If closed (normal or holiday), closure notice box below handles it with contact buttons
+    if (isDateClosed(date)) return null;
+
     const dow = getDayOfWeek(date);
-    if ([0, 1, 2].includes(dow)) {
-      return {
-        title: t.closedDayTitle,
-        desc: t.closedDayDesc,
-        isClosed: true
-      };
-    }
     if (dow === 3 || dow === 4) {
       return {
         title: clientLang === 'da' ? 'Onsdag & Torsdag: À la carte' : 'Wednesday & Thursday: À la carte',
@@ -917,7 +905,7 @@ export default function App() {
                   <h3>{t.title}</h3>
                   <p className="form-label-desc">{t.desc}</p>
                 </div>
-                <div style={{ padding: '8px 16px', background: 'var(--surface-section)', border: '1px solid #D1D5DB', borderRadius: '3px', fontWeight: 700, fontSize: '14px' }}>
+                <div style={{ padding: '8px 16px', background: 'var(--surface-section)', border: '1px solid #D1D5DB', borderRadius: '0px', fontWeight: 700, fontSize: '14px' }}>
                   {t.selectedTables}: <span style={{ color: 'var(--color-accent-gold)' }}>{staffSelectedTables.map(t => `T${t}`).join(', ') || t.none}</span> ({calculateStaffCapacity()} {t.pax})
                 </div>
               </div>
@@ -937,7 +925,7 @@ export default function App() {
                         padding: '6px 14px',
                         background: '#FFFFFF',
                         border: '1px solid #D1D5DB',
-                        borderRadius: '3px',
+                        borderRadius: '0px',
                         fontSize: '13px',
                         fontWeight: 700,
                         cursor: 'pointer'
@@ -946,6 +934,22 @@ export default function App() {
                       {combo.label}
                     </button>
                   ))}
+                  <button
+                    type="button"
+                    onClick={() => setStaffSelectedTables([])}
+                    style={{
+                      padding: '6px 14px',
+                      background: '#FFF5F6',
+                      border: '1px solid #FDB4BF',
+                      borderRadius: '0px',
+                      fontSize: '13px',
+                      fontWeight: 700,
+                      color: '#B91C1C',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    ✕ Reset selezione
+                  </button>
                 </div>
               </div>
 
@@ -985,13 +989,13 @@ export default function App() {
                           <td style={{ padding: '14px 10px' }}>{res.booking_date} {res.booking_time}</td>
                           <td style={{ padding: '14px 10px', maxWidth: '320px', color: res.notes ? '#333333' : 'var(--color-neutral-muted)' }}>
                             {res.notes ? (
-                              <span style={{ background: '#FFF5F6', padding: '4px 8px', borderRadius: '3px', border: '1px solid #FDB4BF', display: 'inline-block' }}>
+                              <span style={{ background: '#FFF5F6', padding: '4px 8px', borderRadius: '0px', border: '1px solid #FDB4BF', display: 'inline-block' }}>
                                 {res.notes}
                               </span>
                             ) : '-'}
                           </td>
                           <td style={{ padding: '14px 10px' }}>
-                            <span style={{ padding: '4px 8px', background: 'var(--surface-section)', border: '1px solid #D1D5DB', borderRadius: '3px', fontSize: '12px', fontWeight: 700 }}>
+                            <span style={{ padding: '4px 8px', background: 'var(--surface-section)', border: '1px solid #D1D5DB', borderRadius: '0px', fontSize: '12px', fontWeight: 700 }}>
                               {res.status || t.statusConfirmed}
                             </span>
                           </td>
@@ -1015,7 +1019,7 @@ export default function App() {
                 <strong>{formatDate(date)}</strong> {t.summaryTime.toLowerCase()} <strong>{time}</strong>.
               </p>
 
-              <div style={{ backgroundColor: 'var(--surface-section)', border: '1px solid #D1D5DB', borderRadius: '3px', padding: '16px', marginBottom: '24px', textAlign: 'left', fontSize: '14px' }}>
+              <div style={{ backgroundColor: 'var(--surface-section)', border: '1px solid #D1D5DB', borderRadius: '0px', padding: '16px', marginBottom: '24px', textAlign: 'left', fontSize: '14px' }}>
                 <div><strong>{t.modalGuests}:</strong> {confirmedBooking.guests_count}</div>
                 {confirmedBooking.notes && <div><strong>{t.modalNotes}:</strong> {confirmedBooking.notes}</div>}
                 <div><strong>{t.modalEmailSent}:</strong> {confirmedBooking.customer_email}</div>

@@ -208,7 +208,7 @@ export default function App() {
                   style={{
                     background: clientLang === 'da' ? '#FAF6F4' : '#FFFFFF',
                     border: '1.5px solid ' + (clientLang === 'da' ? 'var(--color-accent-gold)' : 'var(--color-neutral-border)'),
-                    borderRadius: '8px',
+                    borderRadius: '0px',
                     padding: '6px 14px',
                     fontSize: '13px',
                     fontWeight: 700,
@@ -224,7 +224,7 @@ export default function App() {
                   style={{
                     background: clientLang === 'en' ? '#FAF6F4' : '#FFFFFF',
                     border: '1.5px solid ' + (clientLang === 'en' ? 'var(--color-accent-gold)' : 'var(--color-neutral-border)'),
-                    borderRadius: '8px',
+                    borderRadius: '0px',
                     padding: '6px 14px',
                     fontSize: '13px',
                     fontWeight: 700,
@@ -243,7 +243,7 @@ export default function App() {
                   style={{
                     background: adminLang === 'it' ? '#FAF6F4' : '#FFFFFF',
                     border: '1.5px solid ' + (adminLang === 'it' ? 'var(--color-accent-gold)' : 'var(--color-neutral-border)'),
-                    borderRadius: '8px',
+                    borderRadius: '0px',
                     padding: '6px 14px',
                     fontSize: '13px',
                     fontWeight: 700,
@@ -259,7 +259,7 @@ export default function App() {
                   style={{
                     background: adminLang === 'en' ? '#FAF6F4' : '#FFFFFF',
                     border: '1.5px solid ' + (adminLang === 'en' ? 'var(--color-accent-gold)' : 'var(--color-neutral-border)'),
-                    borderRadius: '8px',
+                    borderRadius: '0px',
                     padding: '6px 14px',
                     fontSize: '13px',
                     fontWeight: 700,
@@ -281,7 +281,7 @@ export default function App() {
                 background: activeTab === 'client' ? '#1C1917' : '#FFFFFF',
                 color: activeTab === 'client' ? '#FFFFFF' : '#1C1917',
                 border: '1.5px solid ' + (activeTab === 'client' ? '#1C1917' : 'var(--color-neutral-border)'),
-                borderRadius: '8px',
+                borderRadius: '0px',
                 padding: '8px 18px',
                 fontSize: '13px',
                 fontWeight: 700,
@@ -297,7 +297,7 @@ export default function App() {
                 background: activeTab === 'staff' ? '#1C1917' : '#FFFFFF',
                 color: activeTab === 'staff' ? '#FFFFFF' : '#1C1917',
                 border: '1.5px solid ' + (activeTab === 'staff' ? '#1C1917' : 'var(--color-neutral-border)'),
-                borderRadius: '8px',
+                borderRadius: '0px',
                 padding: '8px 18px',
                 fontSize: '13px',
                 fontWeight: 700,
@@ -326,16 +326,15 @@ export default function App() {
                   className={`spec-step-btn ${step === 1 ? 'active' : ''}`}
                   onClick={() => setStep(1)}
                 >
-                  <span className="spec-step-num">1</span>
-                  <span>{t.step1}</span>
+                  {t.step1}
                 </button>
+                <span className="spec-stepper-separator">/</span>
                 <button
                   type="button"
                   className={`spec-step-btn ${step === 2 ? 'active' : ''}`}
                   onClick={() => setStep(2)}
                 >
-                  <span className="spec-step-num">2</span>
-                  <span>{t.step2}</span>
+                  {t.step2}
                 </button>
               </div>
             </div>
@@ -373,7 +372,7 @@ export default function App() {
                             ))}
                           </div>
                           {guests >= 10 && (
-                            <p style={{ fontSize: '13px', color: '#7A6F24', background: 'rgba(181, 166, 66, 0.12)', padding: '8px 12px', borderRadius: '8px', marginTop: '4px' }}>
+                            <p style={{ fontSize: '13px', color: '#7A6F24', background: 'rgba(181, 166, 66, 0.12)', padding: '8px 12px', borderRadius: '0px', marginTop: '4px' }}>
                               {t.groupAlert}
                             </p>
                           )}

@@ -1,0 +1,19 @@
+{
+  "name": "ipupisiciliani-booking",
+  "version": "1.0.0",
+  "description": "Sistema di prenotazione visivo per I Pupi Siciliani - Odense",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve -l 3000 .",
+    "dev": "python3 -m http.server 3000"
+  },
+  "keywords": [
+    "restaurant",
+    "booking",
+    "floorplan",
+    "odense",
+    "sicilian"
+  ],
+  "author": "I Pupi Siciliani",
+  "license": "ISC"
+}

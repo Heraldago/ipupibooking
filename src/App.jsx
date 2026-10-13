@@ -102,7 +102,7 @@ export default function App() {
     try {
       if (isSupabaseConfigured && supabase) {
         const { error } = await supabase.from('reservations').insert([bookingData]);
-        if (error) console.warn('Supabase sync notice:', error.message);
+        if (error) console.warn('Supabase notice:', error.message);
       }
       
       const updated = [bookingData, ...reservations];
@@ -111,10 +111,10 @@ export default function App() {
 
       setConfirmedBooking(bookingData);
       confetti({
-        particleCount: 80,
+        particleCount: 75,
         spread: 60,
         origin: { y: 0.6 },
-        colors: ['#C27060', '#24140E', '#FAF2EE']
+        colors: ['#FDB4BF', '#B5A642', '#333333']
       });
     } catch (err) {
       console.error(err);
@@ -157,505 +157,497 @@ export default function App() {
   };
 
   return (
-    <div className="app-layout">
-      {/* Top Header Controls: Language Switcher + View Switcher */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
+    <div className="booking-section">
+      <div className="booking-container">
         
-        {/* Language Switcher */}
-        <div style={{ display: 'flex', gap: '6px' }}>
-          {activeTab === 'client' ? (
-            <>
-              <button
-                type="button"
-                onClick={() => setClientLang('da')}
-                style={{
-                  padding: '6px 14px',
-                  borderRadius: '999px',
-                  border: `1.5px solid ${clientLang === 'da' ? 'var(--accent-espresso)' : 'var(--border-light)'}`,
-                  background: clientLang === 'da' ? 'var(--accent-espresso)' : 'var(--bg-white)',
-                  color: clientLang === 'da' ? '#FFFFFF' : 'var(--text-dark)',
-                  fontSize: '0.82rem',
-                  fontWeight: 600,
-                  cursor: 'pointer'
-                }}
-              >
-                🇩🇰 Dansk
-              </button>
-              <button
-                type="button"
-                onClick={() => setClientLang('en')}
-                style={{
-                  padding: '6px 14px',
-                  borderRadius: '999px',
-                  border: `1.5px solid ${clientLang === 'en' ? 'var(--accent-espresso)' : 'var(--border-light)'}`,
-                  background: clientLang === 'en' ? 'var(--accent-espresso)' : 'var(--bg-white)',
-                  color: clientLang === 'en' ? '#FFFFFF' : 'var(--text-dark)',
-                  fontSize: '0.82rem',
-                  fontWeight: 600,
-                  cursor: 'pointer'
-                }}
-              >
-                🇬🇧 English
-              </button>
-            </>
-          ) : (
-            <>
-              <button
-                type="button"
-                onClick={() => setAdminLang('it')}
-                style={{
-                  padding: '6px 14px',
-                  borderRadius: '999px',
-                  border: `1.5px solid ${adminLang === 'it' ? 'var(--accent-espresso)' : 'var(--border-light)'}`,
-                  background: adminLang === 'it' ? 'var(--accent-espresso)' : 'var(--bg-white)',
-                  color: adminLang === 'it' ? '#FFFFFF' : 'var(--text-dark)',
-                  fontSize: '0.82rem',
-                  fontWeight: 600,
-                  cursor: 'pointer'
-                }}
-              >
-                🇮🇹 Italiano
-              </button>
-              <button
-                type="button"
-                onClick={() => setAdminLang('en')}
-                style={{
-                  padding: '6px 14px',
-                  borderRadius: '999px',
-                  border: `1.5px solid ${adminLang === 'en' ? 'var(--accent-espresso)' : 'var(--border-light)'}`,
-                  background: adminLang === 'en' ? 'var(--accent-espresso)' : 'var(--bg-white)',
-                  color: adminLang === 'en' ? '#FFFFFF' : 'var(--text-dark)',
-                  fontSize: '0.82rem',
-                  fontWeight: 600,
-                  cursor: 'pointer'
-                }}
-              >
-                🇬🇧 English
-              </button>
-            </>
-          )}
-        </div>
+        {/* Top Header Utilities: Language & View Switcher */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px', flexWrap: 'wrap', gap: '16px' }}>
+          
+          {/* Language Switcher */}
+          <div style={{ display: 'flex', gap: '8px' }}>
+            {activeTab === 'client' ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setClientLang('da')}
+                  className={clientLang === 'da' ? 'gold-link' : ''}
+                  style={{
+                    background: '#FFFFFF',
+                    border: '1px solid #D1D5DB',
+                    borderRadius: '3px',
+                    padding: '6px 14px',
+                    fontSize: '14px',
+                    fontWeight: 700,
+                    cursor: 'pointer'
+                  }}
+                >
+                  🇩🇰 Dansk
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setClientLang('en')}
+                  className={clientLang === 'en' ? 'gold-link' : ''}
+                  style={{
+                    background: '#FFFFFF',
+                    border: '1px solid #D1D5DB',
+                    borderRadius: '3px',
+                    padding: '6px 14px',
+                    fontSize: '14px',
+                    fontWeight: 700,
+                    cursor: 'pointer'
+                  }}
+                >
+                  🇬🇧 English
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setAdminLang('it')}
+                  className={adminLang === 'it' ? 'gold-link' : ''}
+                  style={{
+                    background: '#FFFFFF',
+                    border: '1px solid #D1D5DB',
+                    borderRadius: '3px',
+                    padding: '6px 14px',
+                    fontSize: '14px',
+                    fontWeight: 700,
+                    cursor: 'pointer'
+                  }}
+                >
+                  🇮🇹 Italiano
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAdminLang('en')}
+                  className={adminLang === 'en' ? 'gold-link' : ''}
+                  style={{
+                    background: '#FFFFFF',
+                    border: '1px solid #D1D5DB',
+                    borderRadius: '3px',
+                    padding: '6px 14px',
+                    fontSize: '14px',
+                    fontWeight: 700,
+                    cursor: 'pointer'
+                  }}
+                >
+                  🇬🇧 English
+                </button>
+              </>
+            )}
+          </div>
 
-        {/* View Switcher */}
-        <div style={{
-          background: 'var(--bg-white)',
-          padding: '4px',
-          borderRadius: '999px',
-          border: '1px solid var(--border-light)',
-          display: 'inline-flex',
-          gap: '4px',
-          boxShadow: 'var(--shadow-subtle)'
-        }}>
-          <button
-            type="button"
-            onClick={() => setActiveTab('client')}
-            style={{
-              padding: '8px 18px',
-              borderRadius: '999px',
-              border: 'none',
-              background: activeTab === 'client' ? 'var(--accent-espresso)' : 'transparent',
-              color: activeTab === 'client' ? '#FFFFFF' : 'var(--text-muted)',
-              fontSize: '0.85rem',
-              fontWeight: 600,
-              cursor: 'pointer',
-              transition: 'all 0.2s ease'
-            }}
-          >
-            {activeTab === 'client' ? t.viewBooking : 'Bordreservation / Booking'}
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('staff')}
-            style={{
-              padding: '8px 18px',
-              borderRadius: '999px',
-              border: 'none',
-              background: activeTab === 'staff' ? 'var(--accent-espresso)' : 'transparent',
-              color: activeTab === 'staff' ? '#FFFFFF' : 'var(--text-muted)',
-              fontSize: '0.85rem',
-              fontWeight: 600,
-              cursor: 'pointer',
-              transition: 'all 0.2s ease'
-            }}
-          >
-            {activeTab === 'staff' ? t.viewStaff : '⚙︎ Staff / Admin'}
-          </button>
-        </div>
-      </div>
-
-      {/* Brand Header */}
-      <header className="brand-header">
-        <div className="brand-badge">{t.badge || 'Trattoria Autentica • Odense'}</div>
-        <h1 className="brand-title">I Pupi Siciliani</h1>
-        <p className="brand-subtitle">{t.subtitle || t.desc}</p>
-      </header>
-
-      {/* CLIENT FACING FLOW (Danish / English) */}
-      {activeTab === 'client' && (
-        <>
-          <nav className="stepper-nav">
+          {/* View Mode */}
+          <div style={{ display: 'flex', gap: '8px' }}>
             <button
-              className={`step-indicator ${step === 1 ? 'active' : 'done'}`}
-              onClick={() => setStep(1)}
+              type="button"
+              onClick={() => setActiveTab('client')}
+              style={{
+                background: activeTab === 'client' ? '#333333' : '#FFFFFF',
+                color: activeTab === 'client' ? '#FFFFFF' : '#333333',
+                border: '1px solid #D1D5DB',
+                borderRadius: '3px',
+                padding: '8px 18px',
+                fontSize: '14px',
+                fontWeight: 700,
+                cursor: 'pointer'
+              }}
             >
-              {t.step1}
+              {activeTab === 'client' ? t.viewBooking : 'Bordreservation / Booking'}
             </button>
             <button
-              className={`step-indicator ${step === 2 ? 'active' : ''}`}
-              onClick={() => setStep(2)}
+              type="button"
+              onClick={() => setActiveTab('staff')}
+              style={{
+                background: activeTab === 'staff' ? '#333333' : '#FFFFFF',
+                color: activeTab === 'staff' ? '#FFFFFF' : '#333333',
+                border: '1px solid #D1D5DB',
+                borderRadius: '3px',
+                padding: '8px 18px',
+                fontSize: '14px',
+                fontWeight: 700,
+                cursor: 'pointer'
+              }}
             >
-              {t.step2}
+              {activeTab === 'staff' ? t.viewStaff : '⚙︎ Staff / Admin'}
             </button>
-          </nav>
+          </div>
+        </div>
 
-          <div className="booking-grid">
+        {/* Editorial Heading Structure */}
+        <header style={{ textAlign: 'center', marginBottom: '50px' }}>
+          <div style={{ color: 'var(--color-accent-gold)', fontWeight: 700, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '10px' }}>
+            ★ ★ ★ ★ ★ &nbsp; Trattoria Autentica &nbsp; ★ ★ ★ ★ ★
+          </div>
+          <h1>{t.title}</h1>
+          <h2>{t.subtitle || t.desc}</h2>
+        </header>
+
+        {/* CLIENT FACING FLOW */}
+        {activeTab === 'client' && (
+          <div className="booking-layout-grid">
             <main>
+              {/* Stepper Tab Indicator */}
+              <div className="spec-stepper">
+                <button
+                  type="button"
+                  className={`spec-step-btn ${step === 1 ? 'active' : ''}`}
+                  onClick={() => setStep(1)}
+                >
+                  {t.step1}
+                </button>
+                <span style={{ color: '#D1D5DB' }}>/</span>
+                <button
+                  type="button"
+                  className={`spec-step-btn ${step === 2 ? 'active' : ''}`}
+                  onClick={() => setStep(2)}
+                >
+                  {t.step2}
+                </button>
+              </div>
+
               {step === 1 && (
-                <div className="lux-card">
-                  <div className="card-heading">
-                    <h2 className="card-title">{t.guestsTitle}</h2>
-                    <p className="card-desc">{t.guestsDesc}</p>
+                <div className="booking-card">
+                  <div style={{ marginBottom: '25px' }}>
+                    <h3>{t.guestsTitle}</h3>
+                    <p className="form-label-desc" style={{ marginTop: '6px' }}>{t.guestsDesc}</p>
                   </div>
 
-                  {/* Big Guest Picker */}
-                  <div className="guest-picker">
-                    {[1, 2, 3, 4, 5, 6, 7, 8, 10].map((num) => (
+                  <div className="form-group-stack">
+                    {/* Guest Picker */}
+                    <div className="form-group">
+                      <label className="form-label">{t.summaryGuests}</label>
+                      <div className="guest-selector-grid">
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 10].map((num) => (
+                          <button
+                            key={num}
+                            type="button"
+                            className={`guest-btn ${guests === num ? 'selected' : ''}`}
+                            onClick={() => setGuests(num)}
+                          >
+                            {num}
+                            <span className="sub">
+                              {num === 10 ? t.groupLabel : num === 1 ? t.singleGuestLabel : t.guestLabel}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Date Picker */}
+                    <div className="form-group">
+                      <label className="form-label">{t.dateLabel}</label>
+                      <input
+                        type="date"
+                        className="booking-input"
+                        value={date}
+                        min={new Date().toISOString().split('T')[0]}
+                        onChange={(e) => setDate(e.target.value)}
+                      />
+                    </div>
+
+                    {/* Time Slots */}
+                    <div className="form-group">
+                      <label className="form-label">{t.timeLabel}</label>
+                      <div className="time-slot-grid">
+                        {TIME_SLOTS.map((slot) => (
+                          <button
+                            key={slot}
+                            type="button"
+                            className={`time-slot-btn ${time === slot ? 'selected' : ''}`}
+                            onClick={() => setTime(slot)}
+                          >
+                            {slot}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Seating Preference */}
+                    <div className="form-group" style={{ marginTop: '10px' }}>
+                      <label className="form-label">{t.preferenceLabel}</label>
+                      <div className="pref-grid">
+                        {Object.entries(t.preferences).map(([key, val]) => (
+                          <div
+                            key={key}
+                            onClick={() => setPreference(key)}
+                            className={`pref-card ${preference === key ? 'selected' : ''}`}
+                          >
+                            <div className="pref-card-title">{val.label}</div>
+                            <div className="pref-card-desc">{val.desc}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div style={{ marginTop: '16px' }}>
                       <button
-                        key={num}
                         type="button"
-                        className={`guest-btn ${guests === num ? 'selected' : ''}`}
-                        onClick={() => setGuests(num)}
+                        className="btn-primary"
+                        onClick={() => setStep(2)}
                       >
-                        {num}
-                        <span className="label">
-                          {num === 10 ? t.groupLabel : num === 1 ? t.singleGuestLabel : t.guestLabel}
-                        </span>
+                        {t.btnProceed}
                       </button>
-                    ))}
-                  </div>
-
-                  <div className="form-field">
-                    <label className="form-label">{t.dateLabel}</label>
-                    <input
-                      type="date"
-                      className="lux-input"
-                      value={date}
-                      min={new Date().toISOString().split('T')[0]}
-                      onChange={(e) => setDate(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="form-field">
-                    <label className="form-label">{t.timeLabel}</label>
-                    <div className="time-grid">
-                      {TIME_SLOTS.map((slot) => (
-                        <button
-                          key={slot}
-                          type="button"
-                          className={`time-btn ${time === slot ? 'selected' : ''}`}
-                          onClick={() => setTime(slot)}
-                        >
-                          {slot}
-                        </button>
-                      ))}
                     </div>
                   </div>
-
-                  <div className="form-field" style={{ marginTop: '28px' }}>
-                    <label className="form-label">{t.preferenceLabel}</label>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                      {Object.entries(t.preferences).map(([key, val]) => (
-                        <div
-                          key={key}
-                          onClick={() => setPreference(key)}
-                          style={{
-                            padding: '16px',
-                            background: preference === key ? 'var(--bg-rose-card)' : 'var(--bg-white)',
-                            border: `1.5px solid ${preference === key ? 'var(--accent-rose)' : 'var(--border-light)'}`,
-                            borderRadius: 'var(--radius-md)',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s ease'
-                          }}
-                        >
-                          <div style={{ fontWeight: 600, color: 'var(--text-dark)', marginBottom: '4px' }}>
-                            {val.label}
-                          </div>
-                          <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                            {val.desc}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    className="cta-button"
-                    style={{ marginTop: '32px' }}
-                    onClick={() => setStep(2)}
-                  >
-                    {t.btnProceed}
-                  </button>
                 </div>
               )}
 
               {step === 2 && (
-                <form onSubmit={handleBooking} className="lux-card">
-                  <div className="card-heading">
-                    <h2 className="card-title">{t.contactTitle}</h2>
-                    <p className="card-desc">{t.contactDesc}</p>
+                <form onSubmit={handleBooking} className="booking-card">
+                  <div style={{ marginBottom: '25px' }}>
+                    <h3>{t.contactTitle}</h3>
+                    <p className="form-label-desc" style={{ marginTop: '6px' }}>{t.contactDesc}</p>
                   </div>
 
-                  <div className="form-field">
-                    <label className="form-label">{t.nameLabel}</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder={t.namePlaceholder}
-                      className="lux-input"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                    />
-                  </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                    <div className="form-field">
-                      <label className="form-label">{t.phoneLabel}</label>
+                  <div className="form-group-stack">
+                    <div className="form-group">
+                      <label className="form-label">{t.nameLabel}</label>
                       <input
-                        type="tel"
+                        type="text"
                         required
-                        placeholder={t.phonePlaceholder}
-                        className="lux-input"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder={t.namePlaceholder}
+                        className="booking-input"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
                       />
                     </div>
-                    <div className="form-field">
-                      <label className="form-label">{t.emailLabel}</label>
-                      <input
-                        type="email"
-                        required
-                        placeholder={t.emailPlaceholder}
-                        className="lux-input"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                      />
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                      <div className="form-group">
+                        <label className="form-label">{t.phoneLabel}</label>
+                        <input
+                          type="tel"
+                          required
+                          placeholder={t.phonePlaceholder}
+                          className="booking-input"
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value)}
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">{t.emailLabel}</label>
+                        <input
+                          type="email"
+                          required
+                          placeholder={t.emailPlaceholder}
+                          className="booking-input"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                        />
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="form-field">
-                    <label className="form-label">{t.notesLabel}</label>
-                    <textarea
-                      rows="3"
-                      placeholder={t.notesPlaceholder}
-                      className="lux-input"
-                      style={{ height: 'auto', padding: '16px 18px', lineHeight: 1.4 }}
-                      value={notes}
-                      onChange={(e) => setNotes(e.target.value)}
-                    />
-                    <small style={{ color: 'var(--text-muted)', fontSize: '0.8rem', display: 'block', marginTop: '6px' }}>
-                      {t.notesHelp}
-                    </small>
-                  </div>
+                    <div className="form-group">
+                      <label className="form-label">{t.notesLabel}</label>
+                      <textarea
+                        rows="3"
+                        placeholder={t.notesPlaceholder}
+                        className="booking-textarea"
+                        value={notes}
+                        onChange={(e) => setNotes(e.target.value)}
+                      />
+                      <small style={{ color: 'var(--color-neutral-muted)', fontSize: '13px', marginTop: '4px' }}>
+                        {t.notesHelp}
+                      </small>
+                    </div>
 
-                  <div style={{ display: 'flex', gap: '12px', marginTop: '28px' }}>
-                    <button
-                      type="button"
-                      className="cta-button"
-                      style={{ background: '#FAF2EE', color: 'var(--text-dark)', border: '1px solid var(--border-light)' }}
-                      onClick={() => setStep(1)}
-                    >
-                      {t.btnBack}
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="cta-button"
-                    >
-                      {loading ? t.btnSubmitting : t.btnConfirm}
-                    </button>
+                    <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
+                      <button
+                        type="button"
+                        className="btn-secondary"
+                        onClick={() => setStep(1)}
+                      >
+                        {t.btnBack}
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={loading}
+                        className="btn-primary"
+                      >
+                        {loading ? t.btnSubmitting : t.btnConfirm}
+                      </button>
+                    </div>
                   </div>
                 </form>
               )}
             </main>
 
-            {/* Right Summary */}
-            <aside className="summary-card">
-              <h3 className="summary-heading">{t.summaryTitle}</h3>
+            {/* Sidebar Summary */}
+            <aside className="summary-spec-card">
+              <h3 style={{ marginBottom: '16px' }}>{t.summaryTitle}</h3>
 
-              <div className="summary-item">
+              <div className="summary-spec-item">
                 <span className="label">{t.summaryGuests}</span>
-                <span className="value">{guests} {t.guestLabel.toLowerCase()}</span>
+                <span className="val">{guests} {t.guestLabel.toLowerCase()}</span>
               </div>
 
-              <div className="summary-item">
+              <div className="summary-spec-item">
                 <span className="label">{t.summaryDate}</span>
-                <span className="value">{formatDate(date)}</span>
+                <span className="val summary-accent-val">{formatDate(date)}</span>
               </div>
 
-              <div className="summary-item">
+              <div className="summary-spec-item">
                 <span className="label">{t.summaryTime}</span>
-                <span className="value">{time}</span>
+                <span className="val summary-accent-val">{time}</span>
               </div>
 
-              <div className="summary-item">
+              <div className="summary-spec-item">
                 <span className="label">{t.summaryArea}</span>
-                <span className="value" style={{ color: 'var(--accent-rose)' }}>
-                  {t.preferences[preference]?.label}
-                </span>
+                <span className="val">{t.preferences[preference]?.label}</span>
               </div>
 
-              <div style={{ marginTop: '24px', padding: '16px', background: 'var(--bg-rose-soft)', borderRadius: '12px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                ✦ <strong>I Pupi Siciliani</strong><br />
+              <div style={{ marginTop: '24px', padding: '16px', backgroundColor: 'var(--surface-section)', borderRadius: '3px', fontSize: '14px', lineHeight: 1.6 }}>
+                <strong>I Pupi Siciliani</strong><br />
                 Vindegade 71, 5000 Odense C<br />
-                Tel: +45 66 12 11 00
+                <span style={{ color: 'var(--color-accent-gold)', fontWeight: 700 }}>Tel: +45 66 12 11 00</span>
               </div>
             </aside>
           </div>
-        </>
-      )}
+        )}
 
-      {/* STAFF / ADMIN VIEW (Italian / English) */}
-      {activeTab === 'staff' && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '32px' }}>
-          <div className="lux-card">
-            <div className="card-heading" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
-              <div>
-                <h2 className="card-title">{t.title}</h2>
-                <p className="card-desc">{t.desc}</p>
+        {/* STAFF & MODULAR MANAGEMENT */}
+        {activeTab === 'staff' && (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '32px' }}>
+            <div className="booking-card">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '20px', flexWrap: 'wrap', gap: '16px' }}>
+                <div>
+                  <h3>{t.title}</h3>
+                  <p className="form-label-desc">{t.desc}</p>
+                </div>
+                <div style={{ padding: '8px 16px', background: 'var(--surface-section)', border: '1px solid #D1D5DB', borderRadius: '3px', fontWeight: 700, fontSize: '14px' }}>
+                  {t.selectedTables}: <span style={{ color: 'var(--color-accent-gold)' }}>{staffSelectedTables.map(t => `T${t}`).join(', ') || t.none}</span> ({calculateStaffCapacity()} {t.pax})
+                </div>
               </div>
-              <div style={{ background: '#FAF2EE', padding: '10px 18px', borderRadius: '12px', fontWeight: 600, color: 'var(--text-dark)' }}>
-                {t.selectedTables}: <span style={{ color: 'var(--accent-rose)' }}>{staffSelectedTables.map(t => `T${t}`).join(', ') || t.none}</span> ({calculateStaffCapacity()} {t.pax})
+
+              {/* Quick Preset merges */}
+              <div style={{ marginBottom: '20px' }}>
+                <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--color-neutral-muted)' }}>
+                  {t.quickCombos}
+                </span>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '8px' }}>
+                  {PRESET_COMBOS.map((combo) => (
+                    <button
+                      key={combo.id}
+                      type="button"
+                      onClick={() => applyStaffCombo(combo)}
+                      style={{
+                        padding: '6px 14px',
+                        background: '#FFFFFF',
+                        border: '1px solid #D1D5DB',
+                        borderRadius: '3px',
+                        fontSize: '13px',
+                        fontWeight: 700,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {combo.label}
+                    </button>
+                  ))}
+                </div>
               </div>
+
+              {/* Floor Plan */}
+              <TablePlan
+                selectedTables={staffSelectedTables}
+                onToggleTable={toggleStaffTable}
+                guests={calculateStaffCapacity()}
+              />
             </div>
 
-            {/* Modular Combinations presets for staff */}
-            <div style={{ marginBottom: '20px' }}>
-              <span style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--text-muted)' }}>
-                {t.quickCombos}
-              </span>
-              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '10px' }}>
-                {PRESET_COMBOS.map((combo) => (
-                  <button
-                    key={combo.id}
-                    type="button"
-                    onClick={() => applyStaffCombo(combo)}
-                    style={{
-                      padding: '8px 16px',
-                      background: '#FAF2EE',
-                      border: '1.5px solid rgba(194,112,96,0.3)',
-                      borderRadius: '999px',
-                      fontSize: '0.85rem',
-                      fontWeight: 600,
-                      color: 'var(--text-dark)',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    {combo.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* SVG Floor Plan */}
-            <TablePlan
-              selectedTables={staffSelectedTables}
-              onToggleTable={toggleStaffTable}
-              guests={calculateStaffCapacity()}
-            />
-          </div>
-
-          {/* Incoming Reservations Table */}
-          <div className="lux-card">
-            <h2 className="card-title" style={{ marginBottom: '16px' }}>{t.reservationsTitle}</h2>
-            {reservations.length === 0 ? (
-              <p style={{ color: 'var(--text-muted)' }}>{t.noReservations}</p>
-            ) : (
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.92rem' }}>
-                  <thead>
-                    <tr style={{ borderBottom: '2px solid var(--border-light)', color: 'var(--text-muted)' }}>
-                      <th style={{ padding: '12px 10px' }}>{t.thGuest}</th>
-                      <th style={{ padding: '12px 10px' }}>{t.thGuestsCount}</th>
-                      <th style={{ padding: '12px 10px' }}>{t.thDateTime}</th>
-                      <th style={{ padding: '12px 10px' }}>{t.thArea}</th>
-                      <th style={{ padding: '12px 10px' }}>{t.thNotes}</th>
-                      <th style={{ padding: '12px 10px' }}>{t.thStatus}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {reservations.map((res, idx) => (
-                      <tr key={idx} style={{ borderBottom: '1px solid rgba(61, 35, 25, 0.08)' }}>
-                        <td style={{ padding: '14px 10px', fontWeight: 600, color: 'var(--text-dark)' }}>
-                          {res.customer_name}<br />
-                          <small style={{ fontWeight: 400, color: 'var(--text-muted)' }}>{res.customer_phone}</small>
-                        </td>
-                        <td style={{ padding: '14px 10px' }}>{res.guests_count} {t.pax}</td>
-                        <td style={{ padding: '14px 10px' }}>{res.booking_date} {res.booking_time}</td>
-                        <td style={{ padding: '14px 10px', color: 'var(--accent-rose)', fontWeight: 500 }}>
-                          {res.preference_area || '—'}
-                        </td>
-                        <td style={{ padding: '14px 10px', maxWidth: '280px', color: res.notes ? 'var(--text-dark)' : 'var(--text-muted)' }}>
-                          {res.notes || '—'}
-                        </td>
-                        <td style={{ padding: '14px 10px' }}>
-                          <span style={{ padding: '4px 10px', background: '#FAF2EE', color: 'var(--accent-rose)', borderRadius: '999px', fontSize: '0.8rem', fontWeight: 600 }}>
-                            {res.status || t.statusConfirmed}
-                          </span>
-                        </td>
+            {/* Reservations Table */}
+            <div className="booking-card">
+              <h3 style={{ marginBottom: '16px' }}>{t.reservationsTitle}</h3>
+              {reservations.length === 0 ? (
+                <p style={{ color: 'var(--color-neutral-muted)' }}>{t.noReservations}</p>
+              ) : (
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px' }}>
+                    <thead>
+                      <tr style={{ borderBottom: '2px solid #D1D5DB', color: 'var(--color-neutral-muted)' }}>
+                        <th style={{ padding: '12px 10px' }}>{t.thGuest}</th>
+                        <th style={{ padding: '12px 10px' }}>{t.thGuestsCount}</th>
+                        <th style={{ padding: '12px 10px' }}>{t.thDateTime}</th>
+                        <th style={{ padding: '12px 10px' }}>{t.thArea}</th>
+                        <th style={{ padding: '12px 10px' }}>{t.thNotes}</th>
+                        <th style={{ padding: '12px 10px' }}>{t.thStatus}</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Confirmation Modal */}
-      {confirmedBooking && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="success-badge">✓</div>
-            <h2 style={{ fontSize: '2.2rem', marginBottom: '8px' }}>{t.modalTitle}</h2>
-            <p style={{ color: 'var(--text-muted)', marginBottom: '24px' }}>
-              {t.modalThanks} <strong>{confirmedBooking.customer_name}</strong>. {t.modalSub}{' '}
-              <strong>{formatDate(date)}</strong> {t.summaryTime.toLowerCase()} <strong>{time}</strong>.
-            </p>
-
-            <div style={{ background: '#FAF2EE', padding: '16px', borderRadius: '14px', marginBottom: '24px', textAlign: 'left' }}>
-              <div style={{ fontSize: '0.9rem', marginBottom: '6px' }}><strong>{t.modalGuests}:</strong> {confirmedBooking.guests_count}</div>
-              <div style={{ fontSize: '0.9rem', marginBottom: '6px' }}><strong>{t.modalArea}:</strong> {confirmedBooking.preference_area}</div>
-              {confirmedBooking.notes && (
-                <div style={{ fontSize: '0.9rem', marginBottom: '6px' }}><strong>{t.modalNotes}:</strong> {confirmedBooking.notes}</div>
+                    </thead>
+                    <tbody>
+                      {reservations.map((res, idx) => (
+                        <tr key={idx} style={{ borderBottom: '1px solid #F0F0F0' }}>
+                          <td style={{ padding: '14px 10px', fontWeight: 700 }}>
+                            {res.customer_name}<br />
+                            <small style={{ fontWeight: 400, color: 'var(--color-neutral-muted)' }}>{res.customer_phone}</small>
+                          </td>
+                          <td style={{ padding: '14px 10px' }}>{res.guests_count} {t.pax}</td>
+                          <td style={{ padding: '14px 10px' }}>{res.booking_date} {res.booking_time}</td>
+                          <td style={{ padding: '14px 10px', color: 'var(--color-accent-gold)', fontWeight: 700 }}>
+                            {res.preference_area || '—'}
+                          </td>
+                          <td style={{ padding: '14px 10px', maxWidth: '260px' }}>
+                            {res.notes || '—'}
+                          </td>
+                          <td style={{ padding: '14px 10px' }}>
+                            <span style={{ padding: '4px 8px', background: 'var(--surface-section)', border: '1px solid #D1D5DB', borderRadius: '3px', fontSize: '12px', fontWeight: 700 }}>
+                              {res.status || t.statusConfirmed}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               )}
-              <div style={{ fontSize: '0.9rem' }}><strong>{t.modalEmailSent}:</strong> {confirmedBooking.customer_email}</div>
-            </div>
-
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <button
-                type="button"
-                className="cta-button"
-                style={{ background: '#FAF2EE', color: 'var(--text-dark)' }}
-                onClick={downloadICS}
-              >
-                {t.btnCalendar}
-              </button>
-              <button
-                type="button"
-                className="cta-button"
-                onClick={() => {
-                  setConfirmedBooking(null);
-                  setStep(1);
-                }}
-              >
-                {t.btnNewBooking}
-              </button>
             </div>
           </div>
-        </div>
-      )}
+        )}
+
+        {/* Modal Dialog */}
+        {confirmedBooking && (
+          <div className="spec-modal-overlay">
+            <div className="spec-modal-box">
+              <div className="star-rating" style={{ marginBottom: '10px' }}>★ ★ ★ ★ ★</div>
+              <h2 style={{ fontSize: '32px', marginBottom: '8px' }}>{t.modalTitle}</h2>
+              <p style={{ color: 'var(--color-neutral-muted)', marginBottom: '24px' }}>
+                {t.modalThanks} <strong>{confirmedBooking.customer_name}</strong>. {t.modalSub}{' '}
+                <strong>{formatDate(date)}</strong> {t.summaryTime.toLowerCase()} <strong>{time}</strong>.
+              </p>
+
+              <div style={{ backgroundColor: 'var(--surface-section)', border: '1px solid #D1D5DB', borderRadius: '3px', padding: '16px', marginBottom: '24px', textAlign: 'left', fontSize: '14px' }}>
+                <div><strong>{t.modalGuests}:</strong> {confirmedBooking.guests_count}</div>
+                <div><strong>{t.modalArea}:</strong> {confirmedBooking.preference_area}</div>
+                {confirmedBooking.notes && <div><strong>{t.modalNotes}:</strong> {confirmedBooking.notes}</div>}
+                <div><strong>{t.modalEmailSent}:</strong> {confirmedBooking.customer_email}</div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  style={{ flex: 1 }}
+                  onClick={downloadICS}
+                >
+                  {t.btnCalendar}
+                </button>
+                <button
+                  type="button"
+                  className="btn-primary"
+                  style={{ flex: 1 }}
+                  onClick={() => {
+                    setConfirmedBooking(null);
+                    setStep(1);
+                  }}
+                >
+                  {t.btnNewBooking}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+      </div>
     </div>
   );
 }

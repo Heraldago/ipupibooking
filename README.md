@@ -1,24 +1,30 @@
-# I Pupi Siciliani – Online Visual Reservation System
+# I Pupi Siciliani — Booking System (React + Vite)
 
-Sistema di prenotazione visivo e modulare per il ristorante **I Pupi Siciliani** (Vindegade 73, Odense C, Danimarca).
+Sistema di prenotazione tavoli interattivo per la trattoria siciliana **I Pupi Siciliani** (Odense, Danimarca).
 
-## 🚀 Stack & Deploy
-- **Frontend**: Vanilla ES6 Modern Modular Architecture (Zero build dependencies, ultra-fast CDN load, perfect for Vercel).
-- **Backend / DB**: Supabase (PostgreSQL with RLS policies).
-- **Hosting**: Vercel (Edge CDN via `vercel.json`).
+## 🎨 Design & Palette
+- **Sfondo**: Bianco seta e rosa cipria (`#FDF9F8`, `#FAF2EE`)
+- **Tipografia**: Serif elegante *Cormorant Garamond* e sans-serif *Plus Jakarta Sans*
+- **Testi & Bottoni**: Marrone caffè/espresso scuro (`#24140E`) e accenti rame/oro rosa (`#C27060`)
+- **Interattività**: Mappa vettoriale dei tavoli (2–14), modularità sala e saletta, export calendario `.ics`.
 
-## 🗄️ Configurazione Supabase
-1. Crea un progetto su [Supabase](https://supabase.com).
-2. Vai su **SQL Editor** ed esegui il file `supabase-schema.sql`.
-3. Inserisci il tuo `SUPABASE_URL` e `SUPABASE_ANON_KEY` in `supabase-config.js` o tramite variabili d'ambiente.
-
-## 🚢 Deploy su Vercel & GitHub
+## 🚀 Setup Locale
 ```bash
-git init
-git add .
-git commit -m "feat: luxury visual reservation system for I Pupi Siciliani"
-git branch -M main
-git remote add origin https://github.com/<your-user>/ipupisiciliani-booking.git
-git push -u origin main
+npm install
+npm run dev
 ```
-Collega poi il repository su [vercel.com](https://vercel.com) per il deploy istantaneo.
+Apri [http://localhost:3000](http://localhost:3000).
+
+## 🗄️ Supabase
+1. Esegui lo script SQL presente in [`supabase-schema.sql`](./supabase-schema.sql) nel **SQL Editor** di Supabase.
+2. Crea un file `.env` (o imposta le variabili in Vercel):
+```env
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key
+```
+
+## 🌐 Deploy su Vercel
+1. Collega il repository GitHub `git@github.com:Heraldago/ipupibooking.git`.
+2. Framework Preset: **Vite**.
+3. Aggiungi le variabili d'ambiente `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY`.
+4. Deploy!

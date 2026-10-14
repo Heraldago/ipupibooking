@@ -1,39 +1,48 @@
 import React, { useState } from 'react';
 
 export const TABLES = [
-  // Vetrate / Parete Superiore
-  { id: '9', name: 'Tavolo 9', pax: 2, x: 110, y: 125, w: 60, h: 60, zone: 'Vetrate Sinistra', chairs: 'vertical' },
-  { id: '10', name: 'Tavolo 10', pax: 2, x: 200, y: 125, w: 58, h: 60, zone: 'Ingresso / Vetrate', chairs: 'vertical' },
-  { id: '11', name: 'Tavolo 11', pax: 2, x: 258, y: 125, w: 58, h: 60, zone: 'Ingresso / Vetrate', chairs: 'vertical' },
+  // Sinistra / Vetrate Superiore
+  // Il 9 va esattamente sopra a 7 e 8 (stesso asse X, sopra)
+  { id: '9', name: 'Tavolo 9', pax: 2, x: 105, y: 125, w: 64, h: 60, zone: 'Vetrate Sinistra', chairs: 'vertical' },
 
-  // Parete Sinistra
-  { id: '7', name: 'Tavolo 7', pax: 2, x: 110, y: 245, w: 60, h: 58, zone: 'Parete Sinistra', chairs: 'horizontal' },
-  { id: '8', name: 'Tavolo 8', pax: 2, x: 110, y: 303, w: 60, h: 58, zone: 'Parete Sinistra', chairs: 'horizontal' },
+  // 10 e 11 sono di fianco a 9 in alto, quasi sempre attaccati
+  { id: '10', name: 'Tavolo 10', pax: 2, x: 200, y: 125, w: 58, h: 60, zone: 'Ingresso / Vetrate', chairs: 'vertical', pairWith: '11' },
+  { id: '11', name: 'Tavolo 11', pax: 2, x: 258, y: 125, w: 58, h: 60, zone: 'Ingresso / Vetrate', chairs: 'vertical', pairWith: '10' },
 
-  // Centro Sala (Diagonale / A scalare)
-  { id: '5', name: 'Tavolo 5', pax: 2, x: 465, y: 215, w: 60, h: 60, zone: 'Centro Sala', chairs: 'vertical' },
-  { id: '6', name: 'Tavolo 6', pax: 2, x: 390, y: 325, w: 60, h: 60, zone: 'Centro Sala', chairs: 'vertical' },
+  // 7 e 8 sono sempre attaccati lungo la parete sinistra, subito sotto il 9
+  { id: '7', name: 'Tavolo 7', pax: 2, x: 105, y: 245, w: 64, h: 58, zone: 'Parete Sinistra', chairs: 'horizontal', pairWith: '8' },
+  { id: '8', name: 'Tavolo 8', pax: 2, x: 105, y: 303, w: 64, h: 58, zone: 'Parete Sinistra', chairs: 'horizontal', pairWith: '7' },
+
+  // Centro e Parete divisoria (muro opposto alle finestre)
+  // Il 5 in centro, il 6 appoggiato al muro divisorio
+  { id: '5', name: 'Tavolo 5', pax: 2, x: 480, y: 235, w: 64, h: 60, zone: 'Centro Sala', chairs: 'vertical' },
+  { id: '6', name: 'Tavolo 6', pax: 2, x: 420, y: 390, w: 64, h: 60, zone: 'Muro Divisorio', chairs: 'top-sides' },
 
   // Parete Destra
-  { id: '2', name: 'Tavolo 2', pax: 2, x: 595, y: 115, w: 60, h: 60, zone: 'Vetrate Destra', chairs: 'horizontal' },
-  { id: '3', name: 'Tavolo 3', pax: 2, x: 595, y: 215, w: 60, h: 60, zone: 'Parete Destra', chairs: 'horizontal' },
-  { id: '4', name: 'Tavolo 4', pax: 2, x: 595, y: 325, w: 60, h: 60, zone: 'Parete Destra', chairs: 'horizontal' },
+  // 2 dà sulla finestra in alto a destra
+  { id: '2', name: 'Tavolo 2', pax: 2, x: 620, y: 125, w: 64, h: 60, zone: 'Vetrate Destra', chairs: 'horizontal' },
+  // 3 in mezzo
+  { id: '3', name: 'Tavolo 3', pax: 2, x: 620, y: 255, w: 64, h: 60, zone: 'Parete Destra', chairs: 'horizontal' },
+  // 4 in fondo sul muro (lo stesso dove è appoggiato il 6)
+  { id: '4', name: 'Tavolo 4', pax: 2, x: 620, y: 390, w: 64, h: 60, zone: 'Parete Destra / Angolo', chairs: 'horizontal' },
 
-  // Zona Fondo / Saletta
-  { id: '14', name: 'Tavolo 14', pax: 2, x: 245, y: 495, w: 60, h: 60, zone: 'Nicchia Fondo', chairs: 'vertical' },
-  { id: '12', name: 'Tavolo 12', pax: 2, x: 245, y: 710, w: 58, h: 60, zone: 'Saletta Fondo', chairs: 'vertical' },
-  { id: '13', name: 'Tavolo 13', pax: 2, x: 303, y: 710, w: 58, h: 60, zone: 'Saletta Fondo', chairs: 'vertical' }
+  // Saletta (sotto al centro-sinistra, tra 7-8 e 5-6)
+  // 14 più o meno sempre solo
+  { id: '14', name: 'Tavolo 14', pax: 2, x: 250, y: 510, w: 64, h: 60, zone: 'Saletta (Singolo)', chairs: 'vertical' },
+  // 12 e 13 più o meno sempre insieme in fondo alla saletta
+  { id: '12', name: 'Tavolo 12', pax: 2, x: 245, y: 720, w: 58, h: 60, zone: 'Saletta (Modulare)', chairs: 'vertical', pairWith: '13' },
+  { id: '13', name: 'Tavolo 13', pax: 2, x: 303, y: 720, w: 58, h: 60, zone: 'Saletta (Modulare)', chairs: 'vertical', pairWith: '12' }
 ];
 
 export const PRESET_COMBOS = [
-  { id: 'combo-10-11', label: 'Tavoli 10 + 11 (4 pax)', tables: ['10', '11'], capacity: 4 },
-  { id: 'combo-7-8', label: 'Tavoli 7 + 8 (4 pax)', tables: ['7', '8'], capacity: 4 },
-  { id: 'combo-12-13', label: 'Tavoli 12 + 13 (4 pax)', tables: ['12', '13'], capacity: 4 },
+  { id: 'combo-7-8', label: 'Tavoli 7 + 8 (Sempre Uniti - 4 pax)', tables: ['7', '8'], capacity: 4 },
+  { id: 'combo-10-11', label: 'Tavoli 10 + 11 (Quasi sempre Uniti - 4 pax)', tables: ['10', '11'], capacity: 4 },
+  { id: 'combo-12-13', label: 'Saletta 12 + 13 (Uniti - 4 pax)', tables: ['12', '13'], capacity: 4 },
+  { id: 'combo-12-13-14', label: 'Saletta Intera 12 + 13 + 14 (6 pax)', tables: ['12', '13', '14'], capacity: 6 },
   { id: 'combo-2-3', label: 'Tavoli 2 + 3 (4 pax)', tables: ['2', '3'], capacity: 4 },
   { id: 'combo-3-4', label: 'Tavoli 3 + 4 (4 pax)', tables: ['3', '4'], capacity: 4 },
-  { id: 'combo-2-3-4', label: 'Tavolata 2 + 3 + 4 (6 pax)', tables: ['2', '3', '4'], capacity: 6 },
-  { id: 'combo-9-10-11', label: 'Tavolata 9 + 10 + 11 (6 pax)', tables: ['9', '10', '11'], capacity: 6 },
-  { id: 'combo-12-13-14', label: 'Saletta 12 + 13 + 14 (6 pax)', tables: ['12', '13', '14'], capacity: 6 },
+  { id: 'combo-2-3-4', label: 'Tavolata Parete 2 + 3 + 4 (6 pax)', tables: ['2', '3', '4'], capacity: 6 },
+  { id: 'combo-9-7-8', label: 'Blocco Sinistro 9 + 7 + 8 (6 pax)', tables: ['9', '7', '8'], capacity: 6 },
   { id: 'combo-5-6', label: 'Tavoli 5 + 6 (4 pax)', tables: ['5', '6'], capacity: 4 }
 ];
 
@@ -66,7 +75,7 @@ export default function TablePlan({ selectedTables, onToggleTable, guests, occup
         {/* Status Legend */}
         <div style={{ display: 'flex', gap: '16px', alignItems: 'center', fontSize: '13px', color: '#4B5563' }}>
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ width: '14px', height: '14px', background: '#3A3027', border: '1px solid #1A1A1A' }}></span> Libero
+            <span style={{ width: '14px', height: '14px', background: '#362C24', border: '1px solid #1A1A1A' }}></span> Libero
           </span>
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
             <span style={{ width: '14px', height: '14px', background: '#FDB4BF', border: '2px solid #1A1A1A' }}></span> Selezionato
@@ -74,12 +83,15 @@ export default function TablePlan({ selectedTables, onToggleTable, guests, occup
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
             <span style={{ width: '14px', height: '14px', background: '#E5E7EB', border: '1px solid #D1D5DB' }}></span> Occupato
           </span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#B5A642', fontWeight: 600 }}>
+            ✦ Blocchi uniti: 7-8, 10-11, 12-13
+          </span>
         </div>
 
         {/* Live Metrics */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px', fontSize: '13px' }}>
           <span style={{ color: '#6B7280' }}>
-            Posti selezionati: <strong style={{ color: '#111111' }}>{selectedPax} / {totalSeats} pax</strong>
+            Tavoli scelti: <strong style={{ color: '#111111' }}>{selectedTables.join(', ') || 'Nessuno'}</strong> ({selectedPax} / {totalSeats} pax)
           </span>
           {hoveredTable && (
             <span style={{ background: '#FFFFFF', padding: '3px 10px', border: '1px solid #B5A642', color: '#8F822E', fontWeight: 700 }}>
@@ -91,7 +103,7 @@ export default function TablePlan({ selectedTables, onToggleTable, guests, occup
 
       {/* Architectural Plan SVG */}
       <svg 
-        viewBox="0 0 780 870" 
+        viewBox="0 0 800 880" 
         style={{ 
           width: '100%', 
           maxWidth: '740px', 
@@ -121,106 +133,142 @@ export default function TablePlan({ selectedTables, onToggleTable, guests, occup
         </defs>
 
         {/* Outer background context */}
-        <rect x="0" y="0" width="780" height="870" fill="#F8F6F2" />
+        <rect x="0" y="0" width="800" height="880" fill="#F8F6F2" />
 
-        {/* Main Floor Polygon with subtle architectural grid */}
+        {/* Main Floor Polygon (Main room + Saletta + Corridoio) */}
         <polygon
-          points="70,80 690,80 690,820 210,820 210,430 70,430"
+          points="80,80 700,80 700,830 200,830 200,450 80,450"
           fill="#FFFFFF"
         />
         <polygon
-          points="70,80 690,80 690,820 210,820 210,430 70,430"
+          points="80,80 700,80 700,830 200,830 200,450 80,450"
           fill="url(#archGrid)"
         />
 
+        {/* Saletta Tint (Centro-Sinistra sotto 7-8 e 5-6) */}
+        <rect x="200" y="450" width="180" height="380" fill="#FCFAF7" opacity="0.8" />
+
         {/* Corridoio bagno + cucina area fill */}
-        <rect x="375" y="430" width="315" height="390" fill="url(#kitchenHatch)" />
+        <rect x="380" y="450" width="320" height="380" fill="url(#kitchenHatch)" />
 
         {/* Structural Walls (Thick black architectural lines) */}
-        {/* Left main wall */}
-        <line x1="70" y1="80" x2="70" y2="430" stroke="#1A1A1A" strokeWidth="5" strokeLinecap="square" />
+        {/* Left main wall (past 9, 7, 8 down to step) */}
+        <line x1="80" y1="80" x2="80" y2="450" stroke="#1A1A1A" strokeWidth="5" strokeLinecap="square" />
         
-        {/* Step inward */}
-        <line x1="70" y1="430" x2="210" y2="430" stroke="#1A1A1A" strokeWidth="5" strokeLinecap="square" />
-        <line x1="210" y1="430" x2="210" y2="820" stroke="#1A1A1A" strokeWidth="5" strokeLinecap="square" />
-        <line x1="210" y1="820" x2="690" y2="820" stroke="#1A1A1A" strokeWidth="5" strokeLinecap="square" />
-        <line x1="690" y1="820" x2="690" y2="80" stroke="#1A1A1A" strokeWidth="5" strokeLinecap="square" />
+        {/* Step inward between 7-8 and Saletta */}
+        <line x1="80" y1="450" x2="200" y2="450" stroke="#1A1A1A" strokeWidth="5" strokeLinecap="square" />
+        <line x1="200" y1="450" x2="200" y2="830" stroke="#1A1A1A" strokeWidth="5" strokeLinecap="square" />
+        <line x1="200" y1="830" x2="700" y2="830" stroke="#1A1A1A" strokeWidth="5" strokeLinecap="square" />
+        <line x1="700" y1="830" x2="700" y2="80" stroke="#1A1A1A" strokeWidth="5" strokeLinecap="square" />
 
         {/* Top Wall with Entrance Opening */}
-        <line x1="70" y1="80" x2="310" y2="80" stroke="#1A1A1A" strokeWidth="5" strokeLinecap="square" />
-        <line x1="365" y1="80" x2="690" y2="80" stroke="#1A1A1A" strokeWidth="5" strokeLinecap="square" />
+        <line x1="80" y1="80" x2="320" y2="80" stroke="#1A1A1A" strokeWidth="5" strokeLinecap="square" />
+        <line x1="380" y1="80" x2="700" y2="80" stroke="#1A1A1A" strokeWidth="5" strokeLinecap="square" />
 
-        {/* Dividing Wall: Corridoio bagno + cucina */}
-        {/* Horizontal dividing wall */}
-        <line x1="375" y1="430" x2="690" y2="430" stroke="#1A1A1A" strokeWidth="5" strokeLinecap="square" />
+        {/* Dividing Wall: muro opposto alle finestre (dove sono appoggiati il 6 e il 4) */}
+        {/* Horizontal dividing wall from Saletta wall to Right exterior wall */}
+        <line x1="380" y1="450" x2="700" y2="450" stroke="#1A1A1A" strokeWidth="5" strokeLinecap="square" />
         
-        {/* Vertical dividing wall with door opening */}
-        <line x1="375" y1="430" x2="375" y2="570" stroke="#1A1A1A" strokeWidth="5" strokeLinecap="square" />
+        {/* Vertical dividing wall between Saletta and Corridoio */}
+        <line x1="380" y1="450" x2="380" y2="570" stroke="#1A1A1A" strokeWidth="5" strokeLinecap="square" />
         
         {/* Door swing arc for corridor */}
-        <path d="M 375 570 A 70 70 0 0 1 445 640" fill="none" stroke="#9CA3AF" strokeWidth="1.5" strokeDasharray="3 3" />
-        <line x1="375" y1="570" x2="445" y2="570" stroke="#6B7280" strokeWidth="1.5" />
+        <path d="M 380 570 A 70 70 0 0 1 450 640" fill="none" stroke="#9CA3AF" strokeWidth="1.5" strokeDasharray="3 3" />
+        <line x1="380" y1="570" x2="450" y2="570" stroke="#6B7280" strokeWidth="1.5" />
         
-        <line x1="375" y1="640" x2="375" y2="820" stroke="#1A1A1A" strokeWidth="5" strokeLinecap="square" />
+        <line x1="380" y1="640" x2="380" y2="830" stroke="#1A1A1A" strokeWidth="5" strokeLinecap="square" />
+
+        {/* Saletta Zone Label */}
+        <g style={{ userSelect: 'none', pointerEvents: 'none' }}>
+          <text x="290" y="475" fill="#8F822E" fontSize="12" fontWeight="700" textAnchor="middle" letterSpacing="0.08em">
+            SALETTA
+          </text>
+        </g>
 
         {/* Corridoio bagno + cucina labels */}
         <g style={{ userSelect: 'none', pointerEvents: 'none' }}>
-          <text x="532" y="605" fill="#1A1A1A" fontSize="19" fontWeight="600" textAnchor="middle" fontFamily="system-ui, sans-serif">
+          <text x="540" y="605" fill="#1A1A1A" fontSize="19" fontWeight="600" textAnchor="middle" fontFamily="system-ui, sans-serif">
             corridoio bagno
           </text>
-          <text x="532" y="635" fill="#1A1A1A" fontSize="19" fontWeight="600" textAnchor="middle" fontFamily="system-ui, sans-serif">
+          <text x="540" y="635" fill="#1A1A1A" fontSize="19" fontWeight="600" textAnchor="middle" fontFamily="system-ui, sans-serif">
             + cucina
           </text>
-          <rect x="472" y="660" width="120" height="24" fill="#EFECE6" stroke="#D1D5DB" />
-          <text x="532" y="676" fill="#6B7280" fontSize="11" fontWeight="700" textAnchor="middle" letterSpacing="0.05em">
+          <rect x="480" y="660" width="120" height="24" fill="#EFECE6" stroke="#D1D5DB" />
+          <text x="540" y="676" fill="#6B7280" fontSize="11" fontWeight="700" textAnchor="middle" letterSpacing="0.05em">
             ZONA RISERVATA
           </text>
         </g>
 
         {/* Top Header Labels & Window Glass Highlights */}
-        {/* Vetrate (Left) */}
-        <text x="145" y="46" fill="#1A1A1A" fontSize="19" fontWeight="600" textAnchor="middle" fontFamily="system-ui, sans-serif">
+        {/* Vetrate (Left, sopra il tavolo 9) */}
+        <text x="137" y="46" fill="#1A1A1A" fontSize="19" fontWeight="600" textAnchor="middle" fontFamily="system-ui, sans-serif">
           Vetrate
         </text>
-        {/* Golden bar under Vetrate */}
-        <rect x="85" y="62" width="120" height="4" fill="#C5A85A" />
-        {/* Architectural double glass window */}
-        <line x1="85" y1="80" x2="205" y2="80" stroke="#C5A85A" strokeWidth="6" />
-        <line x1="85" y1="76" x2="205" y2="76" stroke="#E8DFB8" strokeWidth="2" />
+        <rect x="90" y="62" width="110" height="4" fill="#C5A85A" />
+        <line x1="90" y1="80" x2="200" y2="80" stroke="#C5A85A" strokeWidth="6" />
+        <line x1="90" y1="76" x2="200" y2="76" stroke="#E8DFB8" strokeWidth="2" />
 
         {/* Entrata (Center) */}
-        <text x="338" y="46" fill="#1A1A1A" fontSize="19" fontWeight="600" textAnchor="middle" fontFamily="system-ui, sans-serif">
+        <text x="350" y="46" fill="#1A1A1A" fontSize="19" fontWeight="600" textAnchor="middle" fontFamily="system-ui, sans-serif">
           Entrata
         </text>
-        {/* Triangle pointer */}
-        <polygon points="338,72 331,58 345,58" fill="#1A1A1A" />
-        {/* Door threshold lines */}
-        <line x1="310" y1="80" x2="365" y2="80" stroke="#B5A642" strokeWidth="2" strokeDasharray="4 3" />
+        <polygon points="350,72 343,58 357,58" fill="#1A1A1A" />
+        <line x1="320" y1="80" x2="380" y2="80" stroke="#B5A642" strokeWidth="2" strokeDasharray="4 3" />
 
-        {/* Vetrate (Right) */}
-        <text x="625" y="46" fill="#1A1A1A" fontSize="19" fontWeight="600" textAnchor="middle" fontFamily="system-ui, sans-serif">
+        {/* Vetrate (Right, sopra il tavolo 2) */}
+        <text x="645" y="46" fill="#1A1A1A" fontSize="19" fontWeight="600" textAnchor="middle" fontFamily="system-ui, sans-serif">
           Vetrate
         </text>
-        {/* Golden bar under Vetrate */}
-        <rect x="565" y="62" width="120" height="4" fill="#C5A85A" />
-        {/* Architectural double glass window */}
-        <line x1="565" y1="80" x2="685" y2="80" stroke="#C5A85A" strokeWidth="6" />
-        <line x1="565" y1="76" x2="685" y2="76" stroke="#E8DFB8" strokeWidth="2" />
+        <rect x="585" y="62" width="110" height="4" fill="#C5A85A" />
+        <line x1="585" y1="80" x2="695" y2="80" stroke="#C5A85A" strokeWidth="6" />
+        <line x1="585" y1="76" x2="695" y2="76" stroke="#E8DFB8" strokeWidth="2" />
 
-        {/* Modular Connection Bridges */}
-        {/* 10 & 11 bridge */}
-        <line x1="258" y1="125" x2="258" y2="185" stroke="#1A1A1A" strokeWidth="1.5" strokeDasharray="3 2" />
-        {/* 7 & 8 bridge */}
-        <line x1="110" y1="303" x2="170" y2="303" stroke="#1A1A1A" strokeWidth="1.5" strokeDasharray="3 2" />
-        {/* 12 & 13 bridge */}
-        <line x1="303" y1="710" x2="303" y2="770" stroke="#1A1A1A" strokeWidth="1.5" strokeDasharray="3 2" />
+        {/* Modular Pair Connectors (7-8, 10-11, 12-13) */}
+        {/* Connector 7 & 8: sempre attaccati */}
+        <rect 
+          x="101" 
+          y="241" 
+          width="72" 
+          height="124" 
+          fill="none" 
+          stroke="#B5A642" 
+          strokeWidth="1.5" 
+          strokeDasharray="4 3" 
+          opacity="0.8" 
+        />
+        
+        {/* Connector 10 & 11: quasi sempre attaccati */}
+        <rect 
+          x="196" 
+          y="121" 
+          width="124" 
+          height="68" 
+          fill="none" 
+          stroke="#B5A642" 
+          strokeWidth="1.5" 
+          strokeDasharray="4 3" 
+          opacity="0.8" 
+        />
+
+        {/* Connector 12 & 13: modulari saletta */}
+        <rect 
+          x="241" 
+          y="716" 
+          width="124" 
+          height="68" 
+          fill="none" 
+          stroke="#B5A642" 
+          strokeWidth="1.5" 
+          strokeDasharray="4 3" 
+          opacity="0.8" 
+        />
 
         {/* Tables & Architectural Chairs */}
         {TABLES.map((t) => {
           const selected = isSelected(t.id);
           const occupied = isOccupied(t.id);
 
-          const tableFill = occupied ? '#E5E7EB' : selected ? '#FDB4BF' : '#3A3027';
+          const tableFill = occupied ? '#E5E7EB' : selected ? '#FDB4BF' : '#362C24';
           const tableStroke = selected ? '#1A1A1A' : occupied ? '#D1D5DB' : '#231D17';
           const textFill = occupied ? '#9CA3AF' : selected ? '#1A1A1A' : '#FFFFFF';
           const chairFill = occupied ? '#D1D5DB' : selected ? '#1A1A1A' : '#6B5848';
@@ -234,9 +282,8 @@ export default function TablePlan({ selectedTables, onToggleTable, guests, occup
               onMouseLeave={() => setHoveredTable(null)}
             >
               {/* Architectural Chairs */}
-              {t.chairs === 'vertical' ? (
+              {t.chairs === 'vertical' && (
                 <>
-                  {/* Top Chair */}
                   <rect
                     x={t.x + (t.w - 32) / 2}
                     y={t.y - 7}
@@ -244,7 +291,6 @@ export default function TablePlan({ selectedTables, onToggleTable, guests, occup
                     height={5}
                     fill={chairFill}
                   />
-                  {/* Bottom Chair */}
                   <rect
                     x={t.x + (t.w - 32) / 2}
                     y={t.y + t.h + 2}
@@ -253,22 +299,48 @@ export default function TablePlan({ selectedTables, onToggleTable, guests, occup
                     fill={chairFill}
                   />
                 </>
-              ) : (
+              )}
+
+              {t.chairs === 'horizontal' && (
                 <>
-                  {/* Left Chair */}
                   <rect
                     x={t.x - 7}
-                    y={t.y + (t.h - 32) / 2}
+                    y={t.y + (t.h - 30) / 2}
                     width={5}
-                    height={32}
+                    height={30}
                     fill={chairFill}
                   />
-                  {/* Right Chair */}
                   <rect
                     x={t.x + t.w + 2}
-                    y={t.y + (t.h - 32) / 2}
+                    y={t.y + (t.h - 30) / 2}
                     width={5}
-                    height={32}
+                    height={30}
+                    fill={chairFill}
+                  />
+                </>
+              )}
+
+              {t.chairs === 'top-sides' && (
+                <>
+                  <rect
+                    x={t.x + (t.w - 32) / 2}
+                    y={t.y - 7}
+                    width={32}
+                    height={5}
+                    fill={chairFill}
+                  />
+                  <rect
+                    x={t.x - 7}
+                    y={t.y + (t.h - 26) / 2}
+                    width={5}
+                    height={26}
+                    fill={chairFill}
+                  />
+                  <rect
+                    x={t.x + t.w + 2}
+                    y={t.y + (t.h - 26) / 2}
+                    width={5}
+                    height={26}
                     fill={chairFill}
                   />
                 </>
@@ -300,7 +372,7 @@ export default function TablePlan({ selectedTables, onToggleTable, guests, occup
                 />
               )}
 
-              {/* Table Number */}
+              {/* Table Number ONLY (no 'T' prefix) */}
               <text
                 x={t.x + t.w / 2}
                 y={t.y + t.h / 2 + 7}

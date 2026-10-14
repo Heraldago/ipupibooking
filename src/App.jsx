@@ -906,7 +906,7 @@ export default function App() {
                   <p className="form-label-desc">{t.desc}</p>
                 </div>
                 <div style={{ padding: '8px 16px', background: 'var(--surface-section)', border: '1px solid #D1D5DB', borderRadius: '0px', fontWeight: 700, fontSize: '14px' }}>
-                  {t.selectedTables}: <span style={{ color: 'var(--color-accent-gold)' }}>{staffSelectedTables.map(t => `T${t}`).join(', ') || t.none}</span> ({calculateStaffCapacity()} {t.pax})
+                  {t.selectedTables}: <span style={{ color: 'var(--color-accent-gold)' }}>{staffSelectedTables.join(', ') || t.none}</span> ({calculateStaffCapacity()} {t.pax})
                 </div>
               </div>
 

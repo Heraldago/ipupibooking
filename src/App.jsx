@@ -294,7 +294,7 @@ export default function App() {
                   style={{
                     background: clientLang === 'da' ? '#FAF6F4' : '#FFFFFF',
                     border: '1.5px solid ' + (clientLang === 'da' ? 'var(--color-accent-gold)' : 'var(--color-neutral-border)'),
-                    borderRadius: '0px',
+                    borderRadius: '6px',
                     padding: '6px 14px',
                     fontSize: '13px',
                     fontWeight: 700,
@@ -310,7 +310,7 @@ export default function App() {
                   style={{
                     background: clientLang === 'en' ? '#FAF6F4' : '#FFFFFF',
                     border: '1.5px solid ' + (clientLang === 'en' ? 'var(--color-accent-gold)' : 'var(--color-neutral-border)'),
-                    borderRadius: '0px',
+                    borderRadius: '6px',
                     padding: '6px 14px',
                     fontSize: '13px',
                     fontWeight: 700,
@@ -329,7 +329,7 @@ export default function App() {
                   style={{
                     background: adminLang === 'it' ? '#FAF6F4' : '#FFFFFF',
                     border: '1.5px solid ' + (adminLang === 'it' ? 'var(--color-accent-gold)' : 'var(--color-neutral-border)'),
-                    borderRadius: '0px',
+                    borderRadius: '6px',
                     padding: '6px 14px',
                     fontSize: '13px',
                     fontWeight: 700,
@@ -345,7 +345,7 @@ export default function App() {
                   style={{
                     background: adminLang === 'en' ? '#FAF6F4' : '#FFFFFF',
                     border: '1.5px solid ' + (adminLang === 'en' ? 'var(--color-accent-gold)' : 'var(--color-neutral-border)'),
-                    borderRadius: '0px',
+                    borderRadius: '6px',
                     padding: '6px 14px',
                     fontSize: '13px',
                     fontWeight: 700,
@@ -367,7 +367,7 @@ export default function App() {
                 background: activeTab === 'client' ? '#1C1917' : '#FFFFFF',
                 color: activeTab === 'client' ? '#FFFFFF' : '#1C1917',
                 border: '1.5px solid ' + (activeTab === 'client' ? '#1C1917' : 'var(--color-neutral-border)'),
-                borderRadius: '0px',
+                borderRadius: '6px',
                 padding: '8px 18px',
                 fontSize: '13px',
                 fontWeight: 700,
@@ -383,7 +383,7 @@ export default function App() {
                 background: activeTab === 'staff' ? '#1C1917' : '#FFFFFF',
                 color: activeTab === 'staff' ? '#FFFFFF' : '#1C1917',
                 border: '1.5px solid ' + (activeTab === 'staff' ? '#1C1917' : 'var(--color-neutral-border)'),
-                borderRadius: '0px',
+                borderRadius: '6px',
                 padding: '8px 18px',
                 fontSize: '13px',
                 fontWeight: 700,
@@ -905,7 +905,7 @@ export default function App() {
                   <h3>{t.title}</h3>
                   <p className="form-label-desc">{t.desc}</p>
                 </div>
-                <div style={{ padding: '8px 16px', background: 'var(--surface-section)', border: '1px solid #D1D5DB', borderRadius: '0px', fontWeight: 700, fontSize: '14px' }}>
+                <div style={{ padding: '8px 16px', background: 'var(--surface-section)', border: '1px solid #D1D5DB', borderRadius: '6px', fontWeight: 700, fontSize: '14px' }}>
                   {t.selectedTables}: <span style={{ color: 'var(--color-accent-gold)' }}>{staffSelectedTables.join(', ') || t.none}</span> ({calculateStaffCapacity()} {t.pax})
                 </div>
               </div>
@@ -925,7 +925,7 @@ export default function App() {
                         padding: '6px 14px',
                         background: '#FFFFFF',
                         border: '1px solid #D1D5DB',
-                        borderRadius: '0px',
+                        borderRadius: '6px',
                         fontSize: '13px',
                         fontWeight: 700,
                         cursor: 'pointer'
@@ -941,7 +941,7 @@ export default function App() {
                       padding: '6px 14px',
                       background: '#FFF5F6',
                       border: '1px solid #FDB4BF',
-                      borderRadius: '0px',
+                      borderRadius: '6px',
                       fontSize: '13px',
                       fontWeight: 700,
                       color: '#B91C1C',
@@ -989,13 +989,13 @@ export default function App() {
                           <td style={{ padding: '14px 10px' }}>{res.booking_date} {res.booking_time}</td>
                           <td style={{ padding: '14px 10px', maxWidth: '320px', color: res.notes ? '#333333' : 'var(--color-neutral-muted)' }}>
                             {res.notes ? (
-                              <span style={{ background: '#FFF5F6', padding: '4px 8px', borderRadius: '0px', border: '1px solid #FDB4BF', display: 'inline-block' }}>
+                              <span style={{ background: '#FFF5F6', padding: '4px 8px', borderRadius: '4px', border: '1px solid #FDB4BF', display: 'inline-block' }}>
                                 {res.notes}
                               </span>
                             ) : '-'}
                           </td>
                           <td style={{ padding: '14px 10px' }}>
-                            <span style={{ padding: '4px 8px', background: 'var(--surface-section)', border: '1px solid #D1D5DB', borderRadius: '0px', fontSize: '12px', fontWeight: 700 }}>
+                            <span style={{ padding: '4px 8px', background: 'var(--surface-section)', border: '1px solid #D1D5DB', borderRadius: '4px', fontSize: '12px', fontWeight: 700 }}>
                               {res.status || t.statusConfirmed}
                             </span>
                           </td>
@@ -1019,7 +1019,7 @@ export default function App() {
                 <strong>{formatDate(date)}</strong> {t.summaryTime.toLowerCase()} <strong>{time}</strong>.
               </p>
 
-              <div style={{ backgroundColor: 'var(--surface-section)', border: '1px solid #D1D5DB', borderRadius: '0px', padding: '16px', marginBottom: '24px', textAlign: 'left', fontSize: '14px' }}>
+              <div style={{ backgroundColor: 'var(--surface-section)', border: '1px solid #D1D5DB', borderRadius: '8px', padding: '16px', marginBottom: '24px', textAlign: 'left', fontSize: '14px' }}>
                 <div><strong>{t.modalGuests}:</strong> {confirmedBooking.guests_count}</div>
                 {confirmedBooking.notes && <div><strong>{t.modalNotes}:</strong> {confirmedBooking.notes}</div>}
                 <div><strong>{t.modalEmailSent}:</strong> {confirmedBooking.customer_email}</div>

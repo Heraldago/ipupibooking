@@ -14,7 +14,10 @@
   --column-gutter: 32px;
   --section-padding-v: 24px;
   --form-gap: 20px;
-  --border-radius: 0px; /* Squadrato design system */
+  --border-radius: 8px; /* Clean rounded corners from Figma design system */
+  --border-radius-sm: 6px;
+  --border-radius-lg: 12px;
+  --border-radius-pill: 9999px;
 
   /* Color System */
   --surface-body: #FFFFFF;
@@ -521,9 +524,10 @@ h3, .heading-3 {
   align-items: center;
   gap: 8px;
   margin-top: 6px;
-  padding: 6px 12px;
+  padding: 6px 14px;
   background: var(--surface-section);
   border: 1px solid var(--color-neutral-border);
+  border-radius: var(--border-radius-pill);
   color: #333333;
   font-size: 13px;
   font-weight: 700;

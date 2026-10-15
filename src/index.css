@@ -14,23 +14,23 @@
   --column-gutter: 32px;
   --section-padding-v: 24px;
   --form-gap: 20px;
-  --border-radius: 8px; /* Clean rounded corners from Figma design system */
-  --border-radius-sm: 6px;
-  --border-radius-lg: 12px;
-  --border-radius-pill: 9999px;
+  --border-radius: 0px; /* Authentic Squadrato design system */
+  --border-radius-sm: 0px;
+  --border-radius-lg: 0px;
+  --border-radius-pill: 0px;
 
   /* Color System */
   --surface-body: #FFFFFF;
-  --surface-section: #FAF8F5; /* Warm subtle luxury off-white */
+  --surface-section: #FFF5F6; /* Signature I Pupi Siciliani Soft Blush Pink */
   --surface-card: #FFFFFF;
   
-  --color-primary-action: #111111;
-  --color-primary-action-hover: #2B2B2B;
+  --color-primary-action: #FDB4BF; /* Brand Pink */
+  --color-primary-action-hover: #F89CA9;
   --color-accent-gold: #B5A642; /* Brand Olive Gold */
   --color-accent-gold-dark: #8C7E26;
   --color-accent-gold-soft: rgba(181, 166, 66, 0.12);
   
-  --color-neutral-text: #222222;
+  --color-neutral-text: #333333;
   --color-neutral-muted: #666666;
   --color-neutral-border: #D1D5DB;
   --color-neutral-border-focus: #B5A642;
@@ -255,13 +255,13 @@ h3, .heading-3 {
 }
 
 .guest-btn.selected {
-  background-color: #111111;
-  border-color: #111111;
-  color: #FFFFFF;
+  background-color: var(--surface-section);
+  border: 2px solid var(--color-accent-gold);
+  color: var(--color-neutral-text);
 }
 
 .guest-btn.selected span.sub {
-  color: #D1D5DB;
+  color: var(--color-accent-gold-dark);
 }
 
 /* Date Carousel & Selector - Squadrato */
@@ -333,9 +333,9 @@ h3, .heading-3 {
 }
 
 .date-card.active {
-  background-color: #111111;
-  border-color: #111111;
-  color: #FFFFFF;
+  background-color: var(--surface-section);
+  border: 2px solid var(--color-accent-gold);
+  color: var(--color-neutral-text);
 }
 
 .date-card .day-title {
@@ -373,7 +373,7 @@ h3, .heading-3 {
   background: transparent;
   border: 1px solid var(--color-neutral-border);
   border-radius: var(--border-radius);
-  color: #111111;
+  color: var(--color-neutral-text);
   font-size: 13px;
   font-weight: 600;
   padding: 8px 14px;
@@ -385,7 +385,7 @@ h3, .heading-3 {
 
 .calendar-toggle-btn:hover {
   border-color: var(--color-accent-gold);
-  background: #FAF8F5;
+  background: var(--surface-section);
 }
 
 /* Service Selection Tabs (Saturday Lunch vs Dinner) */
@@ -401,7 +401,7 @@ h3, .heading-3 {
   background-color: #FFFFFF;
   border: 1px solid var(--color-neutral-border);
   border-radius: var(--border-radius);
-  color: #111111;
+  color: var(--color-neutral-text);
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
@@ -417,19 +417,19 @@ h3, .heading-3 {
 }
 
 .service-tab-btn.active {
-  background-color: #111111;
-  border-color: #111111;
-  color: #FFFFFF;
+  background-color: var(--surface-section);
+  border: 2px solid var(--color-accent-gold);
+  color: var(--color-neutral-text);
 }
 
 /* Dynamic Menu Card - Clarifying Menu Offer per Day */
 .menu-notice-card {
   padding: 14px 16px;
-  background-color: #FAF8F5;
+  background-color: #FFFFFF;
   border-left: 3px solid var(--color-accent-gold);
-  border-top: 1px solid #ECE7DF;
-  border-right: 1px solid #ECE7DF;
-  border-bottom: 1px solid #ECE7DF;
+  border-top: 1px solid var(--color-neutral-border);
+  border-right: 1px solid var(--color-neutral-border);
+  border-bottom: 1px solid var(--color-neutral-border);
   border-radius: var(--border-radius);
   margin-top: 12px;
 }
@@ -437,7 +437,7 @@ h3, .heading-3 {
 .menu-notice-title {
   font-size: 13px;
   font-weight: 700;
-  color: #111111;
+  color: var(--color-neutral-text);
   margin-bottom: 3px;
   display: flex;
   align-items: center;
@@ -453,7 +453,7 @@ h3, .heading-3 {
 /* Notice & Alert Boxes (8+ guests & Closed days) */
 .alert-notice-box {
   padding: 16px 18px;
-  background-color: #FAF8F5;
+  background-color: #FFFFFF;
   border: 1px solid var(--color-neutral-border);
   border-radius: var(--border-radius);
   margin-top: 12px;
@@ -475,8 +475,8 @@ h3, .heading-3 {
   align-items: center;
   gap: 8px;
   padding: 10px 16px;
-  background-color: #111111;
-  color: #FFFFFF;
+  background-color: var(--color-primary-action);
+  color: #333333;
   text-decoration: none;
   font-size: 13px;
   font-weight: 700;
@@ -485,7 +485,7 @@ h3, .heading-3 {
 }
 
 .alert-action-btn:hover {
-  background-color: #2B2B2B;
+  background-color: var(--color-primary-action-hover);
 }
 
 .alert-action-btn.secondary {
@@ -548,7 +548,7 @@ h3, .heading-3 {
   border-radius: var(--border-radius);
   font-size: 16px;
   font-weight: 700;
-  color: #111111;
+  color: var(--color-neutral-text);
   cursor: pointer;
   transition: all 0.15s ease;
   display: inline-flex;
@@ -561,9 +561,9 @@ h3, .heading-3 {
 }
 
 .time-slot-btn.selected {
-  background-color: #111111;
-  border-color: #111111;
-  color: #FFFFFF;
+  background-color: var(--surface-section);
+  border: 2px solid var(--color-accent-gold);
+  color: var(--color-neutral-text);
 }
 
 /* Inputs Spec - Squadrato */
@@ -598,8 +598,8 @@ h3, .heading-3 {
   justify-content: center;
   gap: 10px;
   padding: 16px 28px;
-  background-color: #111111;
-  color: #FFFFFF;
+  background-color: var(--color-primary-action);
+  color: #333333;
   font-size: 16px;
   font-weight: 700;
   text-transform: uppercase;
@@ -613,7 +613,7 @@ h3, .heading-3 {
 }
 
 .btn-primary:hover:not(:disabled) {
-  background-color: #2B2B2B;
+  background-color: var(--color-primary-action-hover);
 }
 
 .btn-primary:disabled {

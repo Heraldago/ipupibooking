@@ -1,29 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-export const TABLES = [
+export const DEFAULT_TABLE_CONFIGS = {
   // Finestre su Vindegade (In alto)
-  { id: '9', label: 'T9', name: 'Tavolo 9', pax: 2, zone: 'Finestre su Vindegade', chairs: 'vertical' },
-  { id: '10', label: 'T10', name: 'Tavolo 10', pax: 2, zone: 'Finestre su Vindegade', chairs: 'vertical', pairWith: '11' },
-  { id: '11', label: 'T11', name: 'Tavolo 11', pax: 2, zone: 'Finestre su Vindegade', chairs: 'vertical', pairWith: '10' },
-  { id: '2', label: 'T2', name: 'Tavolo 2', pax: 2, zone: 'Finestre su Vindegade (Destra)', chairs: 'horizontal' },
+  '9':  { id: '9',  label: 'T9',  name: 'Tavolo 9',  pax: 2, zone: 'Finestre su Vindegade',          direction: 'vertical',   sides: { top: true, bottom: true, left: false, right: false } },
+  '10': { id: '10', label: 'T10', name: 'Tavolo 10', pax: 2, zone: 'Finestre su Vindegade',          direction: 'vertical',   sides: { top: true, bottom: true, left: false, right: false }, pairWith: '11' },
+  '11': { id: '11', label: 'T11', name: 'Tavolo 11', pax: 2, zone: 'Finestre su Vindegade',          direction: 'vertical',   sides: { top: true, bottom: true, left: false, right: false }, pairWith: '10' },
+  '2':  { id: '2',  label: 'T2',  name: 'Tavolo 2',  pax: 2, zone: 'Finestre su Vindegade (Destra)', direction: 'horizontal', sides: { top: false, bottom: false, left: true, right: true } },
 
   // Parete Sinistra (T7 sopra, T8 sotto)
-  { id: '7', label: 'T7', name: 'Tavolo 7', pax: 2, zone: 'Parete Sinistra (Alto)', chairs: 'horizontal', pairWith: '8' },
-  { id: '8', label: 'T8', name: 'Tavolo 8', pax: 2, zone: 'Parete Sinistra (Basso)', chairs: 'horizontal', pairWith: '7' },
+  '7':  { id: '7',  label: 'T7',  name: 'Tavolo 7',  pax: 2, zone: 'Parete Sinistra (Alto)',         direction: 'horizontal', sides: { top: false, bottom: false, left: true, right: true }, pairWith: '8' },
+  '8':  { id: '8',  label: 'T8',  name: 'Tavolo 8',  pax: 2, zone: 'Parete Sinistra (Basso)',        direction: 'horizontal', sides: { top: false, bottom: false, left: true, right: true }, pairWith: '7' },
 
   // Centro Sala (T5 sopra, T6 sotto)
-  { id: '5', label: 'T5', name: 'Tavolo 5', pax: 2, zone: 'Centro Sala (Alto)', chairs: 'horizontal' },
-  { id: '6', label: 'T6', name: 'Tavolo 6', pax: 2, zone: 'Centro Sala (Basso)', chairs: 'horizontal' },
+  '5':  { id: '5',  label: 'T5',  name: 'Tavolo 5',  pax: 2, zone: 'Centro Sala (Alto)',             direction: 'horizontal', sides: { top: false, bottom: false, left: true, right: true } },
+  '6':  { id: '6',  label: 'T6',  name: 'Tavolo 6',  pax: 2, zone: 'Centro Sala (Basso)',            direction: 'horizontal', sides: { top: false, bottom: false, left: true, right: true } },
 
   // Parete Destra (T3 centro, T4 basso)
-  { id: '3', label: 'T3', name: 'Tavolo 3', pax: 2, zone: 'Parete Destra (Centro)', chairs: 'vertical' },
-  { id: '4', label: 'T4', name: 'Tavolo 4', pax: 2, zone: 'Parete Destra (Basso)', chairs: 'horizontal' },
+  '3':  { id: '3',  label: 'T3',  name: 'Tavolo 3',  pax: 2, zone: 'Parete Destra (Centro)',         direction: 'vertical',   sides: { top: true, bottom: true, left: false, right: false } },
+  '4':  { id: '4',  label: 'T4',  name: 'Tavolo 4',  pax: 2, zone: 'Parete Destra (Basso)',          direction: 'horizontal', sides: { top: false, bottom: false, left: true, right: true } },
 
   // Saletta Privata
-  { id: '14', label: 'T14', name: 'Tavolo 14', pax: 2, zone: 'Saletta (Singolo)', chairs: 'vertical' },
-  { id: '12', label: 'T12', name: 'Tavolo 12', pax: 2, zone: 'Saletta (Modulare)', chairs: 'vertical', pairWith: '13' },
-  { id: '13', label: 'T13', name: 'Tavolo 13', pax: 2, zone: 'Saletta (Modulare)', chairs: 'vertical', pairWith: '12' }
-];
+  '14': { id: '14', label: 'T14', name: 'Tavolo 14', pax: 2, zone: 'Saletta (Singolo)',             direction: 'vertical',   sides: { top: true, bottom: true, left: false, right: false } },
+  '12': { id: '12', label: 'T12', name: 'Tavolo 12', pax: 2, zone: 'Saletta (Modulare)',            direction: 'vertical',   sides: { top: true, bottom: true, left: false, right: false }, pairWith: '13' },
+  '13': { id: '13', label: 'T13', name: 'Tavolo 13', pax: 2, zone: 'Saletta (Modulare)',            direction: 'vertical',   sides: { top: true, bottom: true, left: false, right: false }, pairWith: '12' }
+};
+
+export const TABLES = Object.values(DEFAULT_TABLE_CONFIGS);
 
 export const PRESET_COMBOS = [
   { id: 'combo-7-8', label: 'Tavoli T7 + T8 (Parete Sinistra - 4 pax)', tables: ['7', '8'], capacity: 4 },
@@ -35,20 +37,96 @@ export const PRESET_COMBOS = [
   { id: 'combo-12-13-14', label: 'Saletta Completa T12 + T13 + T14 (6 pax)', tables: ['12', '13', '14'], capacity: 6 }
 ];
 
-export default function TablePlan({ selectedTables = [], onToggleTable, guests, occupiedTables = [] }) {
+export default function TablePlan({ 
+  selectedTables = [], 
+  onToggleTable, 
+  guests, 
+  occupiedTables = [],
+  onConfigChange
+}) {
   const [hoveredTable, setHoveredTable] = useState(null);
-  const [viewZone, setViewZone] = useState('main'); // 'main' | 'all' | 'saletta'
+  const [activeEditingId, setActiveEditingId] = useState('5'); // Default table open in configurator
+
+  // Load custom table configurations (chair counts & direction) from localStorage
+  const [tableConfigs, setTableConfigs] = useState(() => {
+    try {
+      const saved = localStorage.getItem('pupi_table_configs_v2');
+      if (saved) {
+        return { ...DEFAULT_TABLE_CONFIGS, ...JSON.parse(saved) };
+      }
+    } catch (e) {
+      console.warn('Error reading table configs', e);
+    }
+    return DEFAULT_TABLE_CONFIGS;
+  });
+
+  const saveConfigs = (newConfigs) => {
+    setTableConfigs(newConfigs);
+    try {
+      localStorage.setItem('pupi_table_configs_v2', JSON.stringify(newConfigs));
+    } catch (e) {
+      console.warn('Error saving table configs', e);
+    }
+    if (onConfigChange) {
+      onConfigChange(newConfigs);
+    }
+  };
+
+  const updateTablePax = (id, delta) => {
+    const current = tableConfigs[id] || DEFAULT_TABLE_CONFIGS[id];
+    const newPax = Math.max(1, Math.min(8, (current.pax || 2) + delta));
+    const updated = {
+      ...tableConfigs,
+      [id]: { ...current, pax: newPax }
+    };
+    saveConfigs(updated);
+  };
+
+  const setTablePaxDirect = (id, newPax) => {
+    const current = tableConfigs[id] || DEFAULT_TABLE_CONFIGS[id];
+    const updated = {
+      ...tableConfigs,
+      [id]: { ...current, pax: newPax }
+    };
+    saveConfigs(updated);
+  };
+
+  const setTableDirection = (id, dir) => {
+    const current = tableConfigs[id] || DEFAULT_TABLE_CONFIGS[id];
+    let sides = { top: false, bottom: false, left: false, right: false };
+    if (dir === 'vertical') {
+      sides = { top: true, bottom: true, left: false, right: false };
+    } else if (dir === 'horizontal') {
+      sides = { top: false, bottom: false, left: true, right: true };
+    } else if (dir === 'all-around') {
+      sides = { top: true, bottom: true, left: true, right: true };
+    }
+    const updated = {
+      ...tableConfigs,
+      [id]: { ...current, direction: dir, sides }
+    };
+    saveConfigs(updated);
+  };
+
+  const toggleTableSide = (id, side) => {
+    const current = tableConfigs[id] || DEFAULT_TABLE_CONFIGS[id];
+    const currentSides = current.sides || { top: true, bottom: true, left: false, right: false };
+    const newSides = { ...currentSides, [side]: !currentSides[side] };
+    const updated = {
+      ...tableConfigs,
+      [id]: { ...current, direction: 'custom', sides: newSides }
+    };
+    saveConfigs(updated);
+  };
+
+  const resetAllConfigs = () => {
+    saveConfigs(DEFAULT_TABLE_CONFIGS);
+  };
 
   const isSelected = (id) => selectedTables.includes(id);
   const isOccupied = (id) => occupiedTables.includes(id);
 
-  const totalSeats = TABLES.length * 2;
-  const selectedPax = selectedTables.reduce((acc, tid) => {
-    const t = TABLES.find(item => item.id === tid);
-    return acc + (t ? t.pax : 2);
-  }, 0);
-
-  // Exact 2x pixel coordinates measured directly from media_1792059477198_315b740a.png (room: x=48..728, y=46..482)
+  // Exact 2x pixel coordinates of the 13 tables on the single unified architectural plan
   const TABLE_COORDS = {
     // Top Row - Finestre su Vindegade
     '9':  { x: 54,  y: 106, w: 60, h: 60 },
@@ -66,17 +144,78 @@ export default function TablePlan({ selectedTables = [], onToggleTable, guests, 
     '6':  { x: 466, y: 386, w: 60, h: 60 },
     '4':  { x: 638, y: 394, w: 60, h: 60 },
 
-    // Saletta Privata (Sotto Centro-Sinistra)
-    '14': { x: 204, y: 540, w: 60, h: 60 },
-    '12': { x: 204, y: 640, w: 60, h: 60 },
-    '13': { x: 284, y: 640, w: 60, h: 60 }
+    // Saletta Privata (Sotto - continua nella stessa planimetria)
+    '14': { x: 204, y: 535, w: 60, h: 60 },
+    '12': { x: 204, y: 645, w: 60, h: 60 },
+    '13': { x: 284, y: 645, w: 60, h: 60 }
   };
 
-  const currentTables = TABLES.filter(t => {
-    if (viewZone === 'main') return !['14', '12', '13'].includes(t.id);
-    if (viewZone === 'saletta') return ['14', '12', '13'].includes(t.id);
-    return true;
+  const allTableList = Object.keys(DEFAULT_TABLE_CONFIGS).map(id => {
+    return {
+      ...(DEFAULT_TABLE_CONFIGS[id]),
+      ...(tableConfigs[id] || {})
+    };
   });
+
+  const totalSeats = allTableList.reduce((acc, t) => acc + (t.pax || 2), 0);
+  const selectedPax = selectedTables.reduce((acc, tid) => {
+    const t = tableConfigs[tid] || DEFAULT_TABLE_CONFIGS[tid];
+    return acc + (t ? t.pax : 2);
+  }, 0);
+
+  // Compute exact chair coordinates for a table based on its pax count and active sides
+  const getChairsForTable = (t, coords) => {
+    const { x, y, w, h } = coords;
+    const pax = t.pax || 2;
+    const direction = t.direction || 'vertical';
+    const sides = t.sides || (direction === 'vertical' ? { top: true, bottom: true } : { left: true, right: true });
+    
+    const activeSides = [];
+    if (sides.top) activeSides.push('top');
+    if (sides.bottom) activeSides.push('bottom');
+    if (sides.left) activeSides.push('left');
+    if (sides.right) activeSides.push('right');
+
+    if (activeSides.length === 0) {
+      activeSides.push(direction === 'horizontal' ? 'left' : 'top');
+    }
+
+    const chairs = [];
+    const countPerSide = {};
+    activeSides.forEach(s => { countPerSide[s] = 0; });
+
+    // Distribute pax across active sides
+    for (let i = 0; i < pax; i++) {
+      const side = activeSides[i % activeSides.length];
+      countPerSide[side] = (countPerSide[side] || 0) + 1;
+    }
+
+    const offset = 9; // distance from table edge
+
+    // Helper to generate coordinates along an edge
+    const placeChairsOnEdge = (side, count) => {
+      for (let i = 0; i < count; i++) {
+        const fraction = (i + 1) / (count + 1);
+        if (side === 'top') {
+          chairs.push({ cx: x + w * fraction, cy: y - offset });
+        } else if (side === 'bottom') {
+          chairs.push({ cx: x + w * fraction, cy: y + h + offset });
+        } else if (side === 'left') {
+          chairs.push({ cx: x - offset, cy: y + h * fraction });
+        } else if (side === 'right') {
+          chairs.push({ cx: x + w + offset, cy: y + h * fraction });
+        }
+      }
+    };
+
+    activeSides.forEach(s => {
+      placeChairsOnEdge(s, countPerSide[s] || 0);
+    });
+
+    return chairs;
+  };
+
+  const currentEditing = tableConfigs[activeEditingId] || DEFAULT_TABLE_CONFIGS[activeEditingId];
 
   const renderTable = (t) => {
     const coords = TABLE_COORDS[t.id];
@@ -86,12 +225,13 @@ export default function TablePlan({ selectedTables = [], onToggleTable, guests, 
     const selected = isSelected(t.id);
     const occupied = isOccupied(t.id);
     const hovered = hoveredTable?.id === t.id;
+    const isEditing = activeEditingId === t.id;
 
     let fill = '#FFFFFF';
     let stroke = '#D1D5DB';
-    let textColor = '#111827';
-    let subColor = '#6B7280';
-    let chairFill = '#B0B8B3';
+    let textColor = '#333333';
+    let subColor = '#666666';
+    let chairFill = '#B5A642';
 
     if (occupied) {
       fill = '#F3F4F6';
@@ -101,41 +241,36 @@ export default function TablePlan({ selectedTables = [], onToggleTable, guests, 
       chairFill = '#D1D5DB';
     } else if (selected) {
       fill = '#FDB4BF';
-      stroke = '#1E1E1E';
-      textColor = '#1E1E1E';
-      subColor = '#1E1E1E';
-      chairFill = '#1E1E1E';
-    } else if (hovered) {
-      fill = '#F9FAF9';
+      stroke = '#333333';
+      textColor = '#333333';
+      subColor = '#333333';
+      chairFill = '#333333';
+    } else if (isEditing) {
+      fill = '#FFF5F6';
       stroke = '#B5A642';
+      textColor = '#333333';
       chairFill = '#B5A642';
+    } else if (hovered) {
+      fill = '#FFF5F6';
+      stroke = '#B5A642';
     }
 
-    // Chair positions (2 dots per table)
-    let chairs = [];
-    if (t.chairs === 'vertical') {
-      // Chairs top and bottom
-      chairs = [
-        { cx: x + w / 2, cy: y - 10 },
-        { cx: x + w / 2, cy: y + h + 10 }
-      ];
-    } else {
-      // Chairs left and right
-      chairs = [
-        { cx: x - 10, cy: y + h / 2 },
-        { cx: x + w + 10, cy: y + h / 2 }
-      ];
-    }
+    const chairs = getChairsForTable(t, coords);
 
     return (
       <g
         key={t.id}
-        onClick={() => !occupied && onToggleTable && onToggleTable(t.id)}
+        onClick={() => {
+          setActiveEditingId(t.id);
+          if (!occupied && onToggleTable) {
+            onToggleTable(t.id);
+          }
+        }}
         onMouseEnter={() => setHoveredTable(t)}
         onMouseLeave={() => setHoveredTable(null)}
         style={{ cursor: occupied ? 'not-allowed' : 'pointer', transition: 'all 0.15s ease' }}
       >
-        {/* Chairs (dots) */}
+        {/* Chairs (rendered based on custom orientation & pax count) */}
         {chairs.map((c, i) => (
           <circle
             key={i}
@@ -143,23 +278,37 @@ export default function TablePlan({ selectedTables = [], onToggleTable, guests, 
             cy={c.cy}
             r="4.5"
             fill={chairFill}
-            style={{ transition: 'fill 0.15s ease' }}
+            style={{ transition: 'all 0.15s ease' }}
           />
         ))}
 
-        {/* Table Box */}
+        {/* Table Box - Squadrato (border-radius 0px) */}
         <rect
           x={x}
           y={y}
           width={w}
           height={h}
-          rx="6"
+          rx="0"
           fill={fill}
           stroke={stroke}
-          strokeWidth={selected ? 2 : 1.2}
+          strokeWidth={selected || isEditing ? 2 : 1.2}
           filter="url(#archShadow)"
           style={{ transition: 'all 0.15s ease' }}
         />
+
+        {/* Selected or Active Indicator Ring */}
+        {isEditing && !selected && (
+          <rect
+            x={x - 2}
+            y={y - 2}
+            width={w + 4}
+            height={h + 4}
+            fill="none"
+            stroke="#B5A642"
+            strokeWidth="1.5"
+            strokeDasharray="4 3"
+          />
+        )}
 
         {/* Table Label */}
         <text
@@ -181,12 +330,12 @@ export default function TablePlan({ selectedTables = [], onToggleTable, guests, 
           y={y + h / 2 + 15}
           fill={subColor}
           fontSize="11"
-          fontWeight="500"
+          fontWeight="600"
           textAnchor="middle"
           fontFamily="system-ui, -apple-system, sans-serif"
           style={{ userSelect: 'none', pointerEvents: 'none' }}
         >
-          {t.pax} pax
+          {t.pax || 2} pax
         </text>
       </g>
     );
@@ -195,10 +344,10 @@ export default function TablePlan({ selectedTables = [], onToggleTable, guests, 
   return (
     <div style={{ 
       background: '#FFFFFF', 
-      border: '1px solid #E5E7EB', 
-      borderRadius: '8px', 
+      border: '1px solid #D1D5DB', 
+      borderRadius: '0px', 
       padding: '24px', 
-      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
+      boxShadow: '0 4px 16px rgba(0, 0, 0, 0.04)',
       position: 'relative' 
     }}>
       {/* Top Header */}
@@ -219,193 +368,353 @@ export default function TablePlan({ selectedTables = [], onToggleTable, guests, 
             color: '#B5A642', 
             marginBottom: '4px' 
           }}>
-            Planimetria del Ristorante
+            Planimetria Unica del Ristorante
           </div>
           <h3 style={{ 
-            fontSize: '20px', 
+            fontSize: '22px', 
             fontWeight: 700, 
-            color: '#111827', 
+            color: '#333333', 
             margin: '0 0 4px 0', 
-            fontFamily: 'serif' 
+            fontFamily: 'DALI, serif' 
           }}>
             I Pupi Siciliani · Odense
           </h3>
-          <p style={{ fontSize: '13px', color: '#6B7280', margin: 0 }}>
-            Layout esatto dei tavoli con orientamento sedute e capienza
+          <p style={{ fontSize: '13px', color: '#666666', margin: 0 }}>
+            Tutte le 13 postazioni in planimetria continua con sedute orientabili
           </p>
         </div>
 
-        {/* View Zone Switcher */}
-        <div style={{ display: 'flex', gap: '6px', background: '#F9FAFB', padding: '4px', borderRadius: '6px', border: '1px solid #E5E7EB' }}>
-          <button
-            type="button"
-            onClick={() => setViewZone('all')}
-            style={{
-              padding: '6px 12px',
-              fontSize: '12px',
-              fontWeight: 700,
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              background: viewZone === 'all' ? '#111827' : 'transparent',
-              color: viewZone === 'all' ? '#FFFFFF' : '#4B5563',
-              transition: 'all 0.15s ease'
-            }}
-          >
-            Tutte le Sale (13)
-          </button>
-          <button
-            type="button"
-            onClick={() => setViewZone('main')}
-            style={{
-              padding: '6px 12px',
-              fontSize: '12px',
-              fontWeight: 700,
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              background: viewZone === 'main' ? '#111827' : 'transparent',
-              color: viewZone === 'main' ? '#FFFFFF' : '#4B5563',
-              transition: 'all 0.15s ease'
-            }}
-          >
-            Sala Principale (10)
-          </button>
-          <button
-            type="button"
-            onClick={() => setViewZone('saletta')}
-            style={{
-              padding: '6px 12px',
-              fontSize: '12px',
-              fontWeight: 700,
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              background: viewZone === 'saletta' ? '#111827' : 'transparent',
-              color: viewZone === 'saletta' ? '#FFFFFF' : '#4B5563',
-              transition: 'all 0.15s ease'
-            }}
-          >
-            Saletta (3)
-          </button>
+        {/* Legend & Live Metrics */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px' }}>
+          <div style={{ display: 'flex', gap: '14px', alignItems: 'center', fontSize: '12px', color: '#4B5563', flexWrap: 'wrap' }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+              <span style={{ width: '12px', height: '12px', background: '#FFFFFF', border: '1.2px solid #D1D5DB', borderRadius: '0px' }}></span> Libero
+            </span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+              <span style={{ width: '12px', height: '12px', background: '#FDB4BF', border: '1.5px solid #333333', borderRadius: '0px' }}></span> Selezionato
+            </span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+              <span style={{ width: '12px', height: '12px', background: '#F3F4F6', border: '1px solid #E5E7EB', borderRadius: '0px' }}></span> Occupato
+            </span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#666666' }}>
+              <span style={{ width: '7px', height: '7px', background: '#B5A642', borderRadius: '50%' }}></span> Seduta
+            </span>
+          </div>
+
+          <div style={{ fontSize: '13px', color: '#333333', fontWeight: 600 }}>
+            Tavoli scelti: <strong style={{ color: '#B5A642' }}>{selectedTables.map(t => 'T' + t).join(', ') || 'Nessuno'}</strong> ({selectedPax} / {totalSeats} pax totali)
+          </div>
         </div>
       </div>
 
-      {/* Legend & Live Metrics */}
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center', 
-        flexWrap: 'wrap', 
-        gap: '12px',
-        padding: '10px 14px',
-        background: '#FAF8F5',
-        borderRadius: '6px',
-        border: '1px solid #ECE7DF',
+      {/* Interactive Chair & Pax Configurator Panel (Design System Squadrato) */}
+      <div style={{
+        background: '#FFF5F6',
+        border: '1px solid #FDB4BF',
+        borderRadius: '0px',
+        padding: '16px 18px',
         marginBottom: '20px'
       }}>
-        <div style={{ display: 'flex', gap: '16px', alignItems: 'center', fontSize: '12px', color: '#4B5563' }}>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ width: '12px', height: '12px', background: '#FFFFFF', border: '1.2px solid #D1D5DB', borderRadius: '3px' }}></span> Libero
-          </span>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ width: '12px', height: '12px', background: '#FDB4BF', border: '1.5px solid #1E1E1E', borderRadius: '3px' }}></span> Selezionato
-          </span>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ width: '12px', height: '12px', background: '#F3F4F6', border: '1px solid #E5E7EB', borderRadius: '3px' }}></span> Occupato
-          </span>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#6B7280' }}>
-            <span style={{ width: '6px', height: '6px', background: '#B0B8B3', borderRadius: '50%' }}></span> = Seduta / Chair
-          </span>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '13px', fontWeight: 700, color: '#333333', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              ⚙︎ Configura Tavolo & Sedie:
+            </span>
+            {/* Quick table selector buttons */}
+            <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+              {allTableList.map(t => (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => setActiveEditingId(t.id)}
+                  style={{
+                    padding: '3px 8px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    background: activeEditingId === t.id ? '#333333' : '#FFFFFF',
+                    color: activeEditingId === t.id ? '#FFFFFF' : '#333333',
+                    border: '1px solid ' + (activeEditingId === t.id ? '#333333' : '#D1D5DB'),
+                    borderRadius: '0px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={resetAllConfigs}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: '#8C7E26',
+              fontSize: '12px',
+              fontWeight: 700,
+              textDecoration: 'underline',
+              cursor: 'pointer'
+            }}
+          >
+            Ripristina sedie default
+          </button>
         </div>
 
-        <div style={{ fontSize: '13px', color: '#111827', fontWeight: 600 }}>
-          Tavoli scelti: <strong style={{ color: '#B5A642' }}>{selectedTables.map(t => 'T' + t).join(', ') || 'Nessuno'}</strong> ({selectedPax} / {totalSeats} pax)
-        </div>
+        {/* Controls for current active table */}
+        {currentEditing && (
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', 
+            gap: '16px', 
+            alignItems: 'center',
+            paddingTop: '10px',
+            borderTop: '1px dashed #FDB4BF'
+          }}>
+            {/* 1. Pax Count Control */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span style={{ fontSize: '13px', fontWeight: 600, color: '#444444' }}>
+                Coperti (Sedie {currentEditing.label}):
+              </span>
+              <div style={{ display: 'inline-flex', alignItems: 'center', border: '1px solid #D1D5DB', background: '#FFFFFF' }}>
+                <button
+                  type="button"
+                  onClick={() => updateTablePax(currentEditing.id, -1)}
+                  style={{ width: '28px', height: '28px', border: 'none', background: '#FFFFFF', cursor: 'pointer', fontWeight: 700 }}
+                  title="Rimuovi sedia"
+                >
+                  -
+                </button>
+                <span style={{ width: '32px', textAlign: 'center', fontWeight: 700, fontSize: '14px', color: '#333333' }}>
+                  {currentEditing.pax || 2}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => updateTablePax(currentEditing.id, 1)}
+                  style={{ width: '28px', height: '28px', border: 'none', background: '#FFFFFF', cursor: 'pointer', fontWeight: 700 }}
+                  title="Aggiungi sedia"
+                >
+                  +
+                </button>
+              </div>
+
+              {/* Direct numbers */}
+              <div style={{ display: 'flex', gap: '4px' }}>
+                {[1, 2, 3, 4, 6].map(num => (
+                  <button
+                    key={num}
+                    type="button"
+                    onClick={() => setTablePaxDirect(currentEditing.id, num)}
+                    style={{
+                      width: '26px',
+                      height: '26px',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      background: (currentEditing.pax === num) ? '#B5A642' : '#FFFFFF',
+                      color: (currentEditing.pax === num) ? '#FFFFFF' : '#333333',
+                      border: '1px solid ' + (currentEditing.pax === num ? '#B5A642' : '#D1D5DB'),
+                      borderRadius: '0px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {num}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 2. Chair Direction Presets */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '13px', fontWeight: 600, color: '#444444' }}>
+                Direzione sedie:
+              </span>
+              <div style={{ display: 'flex', gap: '6px' }}>
+                <button
+                  type="button"
+                  onClick={() => setTableDirection(currentEditing.id, 'vertical')}
+                  style={{
+                    padding: '5px 10px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    borderRadius: '0px',
+                    cursor: 'pointer',
+                    background: currentEditing.direction === 'vertical' ? '#333333' : '#FFFFFF',
+                    color: currentEditing.direction === 'vertical' ? '#FFFFFF' : '#333333',
+                    border: '1px solid ' + (currentEditing.direction === 'vertical' ? '#333333' : '#D1D5DB')
+                  }}
+                  title="Sedie sopra e sotto"
+                >
+                  ↕ Verticale
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTableDirection(currentEditing.id, 'horizontal')}
+                  style={{
+                    padding: '5px 10px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    borderRadius: '0px',
+                    cursor: 'pointer',
+                    background: currentEditing.direction === 'horizontal' ? '#333333' : '#FFFFFF',
+                    color: currentEditing.direction === 'horizontal' ? '#FFFFFF' : '#333333',
+                    border: '1px solid ' + (currentEditing.direction === 'horizontal' ? '#333333' : '#D1D5DB')
+                  }}
+                  title="Sedie a destra e sinistra"
+                >
+                  ↔ Orizzontale
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTableDirection(currentEditing.id, 'all-around')}
+                  style={{
+                    padding: '5px 10px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    borderRadius: '0px',
+                    cursor: 'pointer',
+                    background: currentEditing.direction === 'all-around' ? '#333333' : '#FFFFFF',
+                    color: currentEditing.direction === 'all-around' ? '#FFFFFF' : '#333333',
+                    border: '1px solid ' + (currentEditing.direction === 'all-around' ? '#333333' : '#D1D5DB')
+                  }}
+                  title="Sedie su tutti i 4 lati"
+                >
+                  ✚ 4 Lati
+                </button>
+              </div>
+            </div>
+
+            {/* 3. Individual side toggles (Top, Bottom, Left, Right) */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '12px', fontWeight: 600, color: '#666666' }}>Lati:</span>
+              {[
+                { side: 'top', label: 'Alto' },
+                { side: 'bottom', label: 'Basso' },
+                { side: 'left', label: 'Sinistra' },
+                { side: 'right', label: 'Destra' }
+              ].map(({ side, label }) => {
+                const isActive = currentEditing.sides && currentEditing.sides[side];
+                return (
+                  <button
+                    key={side}
+                    type="button"
+                    onClick={() => toggleTableSide(currentEditing.id, side)}
+                    style={{
+                      padding: '3px 8px',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      borderRadius: '0px',
+                      cursor: 'pointer',
+                      background: isActive ? '#FFF5F6' : '#FFFFFF',
+                      color: isActive ? '#B5A642' : '#888888',
+                      border: '1.5px solid ' + (isActive ? '#B5A642' : '#D1D5DB')
+                    }}
+                  >
+                    {isActive ? '✓ ' : ''}{label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* SVG Canvas - Responsive Architectural Plan */}
+      {/* SVG Canvas - Single Continuous Architectural Floor Plan (All 13 Tables) */}
       <svg 
-        viewBox={viewZone === 'main' ? "24 24 736 476" : viewZone === 'saletta' ? "160 490 230 240" : "24 24 736 710"} 
+        viewBox="20 20 740 730" 
         style={{ 
           width: '100%', 
           height: 'auto', 
           display: 'block', 
           background: '#FFFFFF', 
-          borderRadius: '6px', 
-          border: '1px solid #E5E7EB' 
+          borderRadius: '0px', 
+          border: '1px solid #D1D5DB' 
         }}
       >
         <defs>
           <filter id="archShadow" x="-10%" y="-10%" width="120%" height="120%">
-            <feDropShadow dx="0" dy="1" stdDeviation="1.5" floodColor="#000000" floodOpacity="0.06" />
+            <feDropShadow dx="0" dy="1" stdDeviation="1.5" floodColor="#000000" floodOpacity="0.05" />
           </filter>
         </defs>
 
-        {/* Outer Hall Boundary (exact 2x coordinates of media_1792059477198_315b740a.png: x=48..728, y=46..482) */}
-        {viewZone !== 'saletta' && (
-          <g>
-            <rect x="48" y="46" width="680" height="436" fill="#FFFFFF" stroke="#D1D5DB" strokeWidth="1.2" rx="4" />
+        {/* 1. Main Hall Outer Boundary (x: 48..728, y: 46..482) */}
+        <rect x="48" y="46" width="680" height="436" fill="#FFFFFF" stroke="#D1D5DB" strokeWidth="1.5" />
 
-            {/* Top Windows Section (FINESTRE SU VINDEGADE) */}
-            <line x1="54" y1="57" x2="200" y2="57" stroke="#A39234" strokeWidth="3.5" />
-            <line x1="208" y1="57" x2="564" y2="57" stroke="#A39234" strokeWidth="3.5" strokeDasharray="8 6" />
-            <line x1="572" y1="57" x2="708" y2="57" stroke="#A39234" strokeWidth="3.5" />
-            
-            <text 
-              x="386" 
-              y="76" 
-              fill="#B5A642" 
-              fontSize="11" 
-              fontWeight="700" 
-              textAnchor="middle" 
-              letterSpacing="0.08em"
-              fontFamily="system-ui, -apple-system, sans-serif"
-            >
-              FINESTRE SU VINDEGADE
-            </text>
+        {/* Top Windows Section (FINESTRE SU VINDEGADE) */}
+        <line x1="54" y1="57" x2="200" y2="57" stroke="#B5A642" strokeWidth="3.5" />
+        <line x1="208" y1="57" x2="564" y2="57" stroke="#B5A642" strokeWidth="3.5" strokeDasharray="8 6" />
+        <line x1="572" y1="57" x2="708" y2="57" stroke="#B5A642" strokeWidth="3.5" />
+        
+        <text 
+          x="386" 
+          y="76" 
+          fill="#B5A642" 
+          fontSize="11" 
+          fontWeight="700" 
+          textAnchor="middle" 
+          letterSpacing="0.08em"
+          fontFamily="system-ui, -apple-system, sans-serif"
+        >
+          FINESTRE SU VINDEGADE
+        </text>
 
-            {/* Right wall arrow indicator (exact 2x position x=745, y=312) */}
-            <g transform="translate(745, 312)">
-              <line x1="0" y1="4" x2="0" y2="-4" stroke="#B5A642" strokeWidth="1.8" />
-              <polyline points="-3,-1 0,-4 3,-1" fill="none" stroke="#B5A642" strokeWidth="1.8" />
-            </g>
-          </g>
-        )}
+        {/* Entrata opening indicator */}
+        <polygon points="350,56 345,48 355,48" fill="#B5A642" />
 
-        {/* Saletta Extension (shown in 'all' or 'saletta' mode) */}
-        {viewZone !== 'main' && (
-          <g>
-            <rect x="174" y="482" width="200" height="236" fill="#FAF8F5" stroke="#D1D5DB" strokeWidth="1.2" rx="4" />
-            <rect x="48" y="482" width="126" height="236" fill="#F3F4F6" stroke="#E5E7EB" strokeWidth="1" />
-            <text x="111" y="605" fill="#9CA3AF" fontSize="12" fontWeight="600" textAnchor="middle">
-              Ingresso
-            </text>
+        {/* Right wall arrow indicator */}
+        <g transform="translate(738, 312)">
+          <line x1="0" y1="4" x2="0" y2="-4" stroke="#B5A642" strokeWidth="1.8" />
+          <polyline points="-3,-1 0,-4 3,-1" fill="none" stroke="#B5A642" strokeWidth="1.8" />
+        </g>
 
-            <rect x="374" y="482" width="354" height="236" fill="#F3F4F6" stroke="#E5E7EB" strokeWidth="1" />
-            <text x="551" y="595" fill="#9CA3AF" fontSize="13" fontWeight="600" textAnchor="middle">
-              Cucina & Servizi
-            </text>
-            <text x="551" y="618" fill="#9CA3AF" fontSize="11" textAnchor="middle">
-              Corridoio Bagni
-            </text>
+        {/* Modular Pair Indicator Lines (7-8, 10-11) */}
+        <rect x="70" y="268" width="68" height="158" fill="none" stroke="#B5A642" strokeWidth="1.2" strokeDasharray="4 3" opacity="0.6" />
+        <rect x="200" y="102" width="148" height="68" fill="none" stroke="#B5A642" strokeWidth="1.2" strokeDasharray="4 3" opacity="0.6" />
 
-            <text 
-              x="274" 
-              y="512" 
-              fill="#8F822E" 
-              fontSize="11" 
-              fontWeight="700" 
-              textAnchor="middle" 
-              letterSpacing="0.1em"
-            >
-              SALETTA PRIVATA
-            </text>
-          </g>
-        )}
+        {/* 2. Saletta Alcove Boundary (x: 184..380, y: 482..730) - Open to Main Hall */}
+        <rect x="184" y="482" width="196" height="248" fill="#FFF5F6" stroke="#D1D5DB" strokeWidth="1.5" />
+        {/* Remove boundary line between Main Hall and Saletta to show open passage */}
+        <line x1="184" y1="482" x2="380" y2="482" stroke="#FFF5F6" strokeWidth="3" />
 
-        {/* Render Tables */}
-        {currentTables.map(t => renderTable(t))}
+        <text 
+          x="282" 
+          y="508" 
+          fill="#8C7E26" 
+          fontSize="11" 
+          fontWeight="700" 
+          textAnchor="middle" 
+          letterSpacing="0.08em"
+        >
+          SALETTA PRIVATA
+        </text>
+
+        {/* Saletta Modular Pair Indicator Line (12-13) */}
+        <rect x="200" y="641" width="148" height="68" fill="none" stroke="#B5A642" strokeWidth="1.2" strokeDasharray="4 3" opacity="0.6" />
+
+        {/* 3. Bottom-Left Exterior Cutout (x: 48..184, y: 482..730) */}
+        <rect x="48" y="482" width="136" height="248" fill="#FAF8F5" stroke="#E5E7EB" strokeWidth="1" />
+        <text x="116" y="605" fill="#9CA3AF" fontSize="11" fontWeight="600" textAnchor="middle" letterSpacing="0.04em">
+          Ingresso
+        </text>
+
+        {/* 4. Bottom-Right Kitchen & Restrooms Corridor (x: 380..728, y: 482..730) */}
+        <rect x="380" y="482" width="348" height="248" fill="#FAF8F5" stroke="#D1D5DB" strokeWidth="1.5" />
+        
+        {/* Door swing arc for corridor entrance */}
+        <path d="M 380 540 A 50 50 0 0 1 430 590" fill="none" stroke="#B5A642" strokeWidth="1.5" strokeDasharray="3 3" />
+        <line x1="380" y1="540" x2="430" y2="540" stroke="#333333" strokeWidth="1.5" />
+
+        <text x="554" y="590" fill="#666666" fontSize="13" fontWeight="700" textAnchor="middle">
+          corridoio bagno
+        </text>
+        <text x="554" y="612" fill="#666666" fontSize="13" fontWeight="700" textAnchor="middle">
+          + cucina
+        </text>
+        <text x="554" y="635" fill="#9CA3AF" fontSize="10" fontWeight="600" textAnchor="middle" letterSpacing="0.06em">
+          ZONA RISERVATA
+        </text>
+
+        {/* Render All 13 Tables with live custom chairs & pax */}
+        {allTableList.map(t => renderTable(t))}
       </svg>
 
       {/* Footer Info */}
@@ -415,18 +724,18 @@ export default function TablePlan({ selectedTables = [], onToggleTable, guests, 
         alignItems: 'center', 
         marginTop: '16px', 
         paddingTop: '12px', 
-        borderTop: '1px solid #F3F4F6', 
+        borderTop: '1px solid #EEEEEE', 
         fontSize: '12px', 
-        color: '#6B7280' 
+        color: '#666666' 
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="20 6 9 17 4 12"></polyline>
-          </svg>
-          <span style={{ fontWeight: 600, color: '#374151' }}>Disposizione esatta sala e sedute</span>
+          <span style={{ color: '#B5A642', fontWeight: 700 }}>✦</span>
+          <span style={{ fontWeight: 600, color: '#333333' }}>
+            Planimetria unica senza cambi vista: clicca su un tavolo per orientare le sedute o cambiare la capienza
+          </span>
         </div>
         <div>
-          Odense · Vindegade
+          Vindegade 73 · Odense C
         </div>
       </div>
     </div>

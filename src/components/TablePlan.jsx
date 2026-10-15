@@ -37,7 +37,7 @@ export const PRESET_COMBOS = [
 
 export default function TablePlan({ selectedTables = [], onToggleTable, guests, occupiedTables = [] }) {
   const [hoveredTable, setHoveredTable] = useState(null);
-  const [viewZone, setViewZone] = useState('all'); // 'all' | 'main' | 'saletta'
+  const [viewZone, setViewZone] = useState('main'); // 'main' | 'all' | 'saletta'
 
   const isSelected = (id) => selectedTables.includes(id);
   const isOccupied = (id) => occupiedTables.includes(id);
@@ -48,28 +48,28 @@ export default function TablePlan({ selectedTables = [], onToggleTable, guests, 
     return acc + (t ? t.pax : 2);
   }, 0);
 
-  // Exact positions mapped from the user's architectural diagram (media_1792059008109_e7aa0d10.png)
+  // Exact 2x pixel coordinates measured directly from media_1792059477198_315b740a.png (room: x=48..728, y=46..482)
   const TABLE_COORDS = {
     // Top Row - Finestre su Vindegade
-    '9':  { x: 65,  y: 110, w: 72, h: 66 },
-    '10': { x: 235, y: 110, w: 70, h: 66 },
-    '11': { x: 325, y: 110, w: 70, h: 66 },
-    '2':  { x: 745, y: 110, w: 72, h: 66 },
+    '9':  { x: 54,  y: 106, w: 60, h: 60 },
+    '10': { x: 204, y: 106, w: 60, h: 60 },
+    '11': { x: 284, y: 106, w: 60, h: 60 },
+    '2':  { x: 626, y: 108, w: 60, h: 60 },
 
-    // Middle Row - Parete Sinistra, Centro, Parete Destra
-    '7':  { x: 85,  y: 285, w: 72, h: 66 },
-    '5':  { x: 545, y: 265, w: 72, h: 66 },
-    '3':  { x: 765, y: 255, w: 72, h: 66 },
+    // Middle Row - Parete Sinistra (T7), Centro (T5), Parete Destra (T3)
+    '7':  { x: 74,  y: 272, w: 60, h: 60 },
+    '5':  { x: 466, y: 250, w: 60, h: 60 },
+    '3':  { x: 648, y: 240, w: 60, h: 60 },
 
-    // Bottom Row - Parete Sinistra, Centro, Parete Destra
-    '8':  { x: 85,  y: 405, w: 72, h: 66 },
-    '6':  { x: 545, y: 420, w: 72, h: 66 },
-    '4':  { x: 755, y: 430, w: 72, h: 66 },
+    // Bottom Row - Parete Sinistra (T8), Centro (T6), Parete Destra (T4)
+    '8':  { x: 74,  y: 362, w: 60, h: 60 },
+    '6':  { x: 466, y: 386, w: 60, h: 60 },
+    '4':  { x: 638, y: 394, w: 60, h: 60 },
 
     // Saletta Privata (Sotto Centro-Sinistra)
-    '14': { x: 235, y: 580, w: 72, h: 66 },
-    '12': { x: 235, y: 690, w: 70, h: 66 },
-    '13': { x: 315, y: 690, w: 70, h: 66 }
+    '14': { x: 204, y: 540, w: 60, h: 60 },
+    '12': { x: 204, y: 640, w: 60, h: 60 },
+    '13': { x: 284, y: 640, w: 60, h: 60 }
   };
 
   const currentTables = TABLES.filter(t => {
@@ -326,7 +326,7 @@ export default function TablePlan({ selectedTables = [], onToggleTable, guests, 
 
       {/* SVG Canvas - Responsive Architectural Plan */}
       <svg 
-        viewBox={viewZone === 'main' ? "0 0 900 530" : viewZone === 'saletta' ? "180 520 250 280" : "0 0 900 790"} 
+        viewBox={viewZone === 'main' ? "24 24 736 476" : viewZone === 'saletta' ? "160 490 230 240" : "24 24 736 710"} 
         style={{ 
           width: '100%', 
           height: 'auto', 
@@ -342,79 +342,65 @@ export default function TablePlan({ selectedTables = [], onToggleTable, guests, 
           </filter>
         </defs>
 
-        {/* Outer Hall Boundary */}
+        {/* Outer Hall Boundary (exact 2x coordinates of media_1792059477198_315b740a.png: x=48..728, y=46..482) */}
         {viewZone !== 'saletta' && (
           <g>
-            <rect x="40" y="45" width="820" height="475" fill="#FAFAFA" stroke="#D1D5DB" strokeWidth="1.2" rx="4" />
+            <rect x="48" y="46" width="680" height="436" fill="#FFFFFF" stroke="#D1D5DB" strokeWidth="1.2" rx="4" />
 
             {/* Top Windows Section (FINESTRE SU VINDEGADE) */}
-            <line x1="50" y1="58" x2="220" y2="58" stroke="#B5A642" strokeWidth="3" />
-            <line x1="220" y1="58" x2="680" y2="58" stroke="#B5A642" strokeWidth="3" strokeDasharray="6 4" />
-            <line x1="680" y1="58" x2="850" y2="58" stroke="#B5A642" strokeWidth="3" />
+            <line x1="54" y1="57" x2="200" y2="57" stroke="#A39234" strokeWidth="3.5" />
+            <line x1="208" y1="57" x2="564" y2="57" stroke="#A39234" strokeWidth="3.5" strokeDasharray="8 6" />
+            <line x1="572" y1="57" x2="708" y2="57" stroke="#A39234" strokeWidth="3.5" />
             
             <text 
-              x="450" 
+              x="386" 
               y="76" 
-              fill="#A39234" 
-              fontSize="12" 
+              fill="#B5A642" 
+              fontSize="11" 
               fontWeight="700" 
               textAnchor="middle" 
-              letterSpacing="0.14em"
+              letterSpacing="0.08em"
               fontFamily="system-ui, -apple-system, sans-serif"
             >
               FINESTRE SU VINDEGADE
             </text>
 
-            {/* Right wall arrow / passage indicator */}
-            <g transform="translate(865, 290)">
-              <line x1="0" y1="0" x2="8" y2="0" stroke="#B5A642" strokeWidth="2" />
-              <polyline points="5,-3 8,0 5,3" fill="none" stroke="#B5A642" strokeWidth="2" />
+            {/* Right wall arrow indicator (exact 2x position x=745, y=312) */}
+            <g transform="translate(745, 312)">
+              <line x1="0" y1="4" x2="0" y2="-4" stroke="#B5A642" strokeWidth="1.8" />
+              <polyline points="-3,-1 0,-4 3,-1" fill="none" stroke="#B5A642" strokeWidth="1.8" />
             </g>
-
-            {/* Connecting pair indicator for T10 & T11 */}
-            <rect x="230" y="105" width="170" height="76" fill="none" stroke="#B5A642" strokeWidth="1" strokeDasharray="3 3" rx="4" opacity="0.6" />
-
-            {/* Connecting pair indicator for T7 & T8 */}
-            <rect x="80" y="280" width="82" height="196" fill="none" stroke="#B5A642" strokeWidth="1" strokeDasharray="3 3" rx="4" opacity="0.6" />
           </g>
         )}
 
         {/* Saletta Extension (shown in 'all' or 'saletta' mode) */}
         {viewZone !== 'main' && (
           <g>
-            {/* Saletta Room Box */}
-            <rect x="200" y="530" width="220" height="250" fill="#FAF8F5" stroke="#D1D5DB" strokeWidth="1.2" rx="4" />
-            
-            {/* Cutout area on the left of Saletta */}
-            <rect x="40" y="530" width="160" height="250" fill="#F3F4F6" stroke="#E5E7EB" strokeWidth="1" />
-            <text x="120" y="660" fill="#9CA3AF" fontSize="13" fontWeight="600" textAnchor="middle">
+            <rect x="174" y="482" width="200" height="236" fill="#FAF8F5" stroke="#D1D5DB" strokeWidth="1.2" rx="4" />
+            <rect x="48" y="482" width="126" height="236" fill="#F3F4F6" stroke="#E5E7EB" strokeWidth="1" />
+            <text x="111" y="605" fill="#9CA3AF" fontSize="12" fontWeight="600" textAnchor="middle">
               Ingresso
             </text>
 
-            {/* Cucina / Servizi area on the right of Saletta */}
-            <rect x="420" y="530" width="440" height="250" fill="#F3F4F6" stroke="#E5E7EB" strokeWidth="1" />
-            <text x="640" y="650" fill="#9CA3AF" fontSize="14" fontWeight="600" textAnchor="middle">
+            <rect x="374" y="482" width="354" height="236" fill="#F3F4F6" stroke="#E5E7EB" strokeWidth="1" />
+            <text x="551" y="595" fill="#9CA3AF" fontSize="13" fontWeight="600" textAnchor="middle">
               Cucina & Servizi
             </text>
-            <text x="640" y="675" fill="#9CA3AF" fontSize="12" textAnchor="middle">
+            <text x="551" y="618" fill="#9CA3AF" fontSize="11" textAnchor="middle">
               Corridoio Bagni
             </text>
 
-            {/* Saletta Title Header */}
             <text 
-              x="310" 
-              y="555" 
+              x="274" 
+              y="512" 
               fill="#8F822E" 
-              fontSize="12" 
+              fontSize="11" 
               fontWeight="700" 
               textAnchor="middle" 
               letterSpacing="0.1em"
             >
               SALETTA PRIVATA
             </text>
-
-            {/* Connecting pair indicator for T12 & T13 */}
-            <rect x="230" y="685" width="160" height="76" fill="none" stroke="#B5A642" strokeWidth="1" strokeDasharray="3 3" rx="4" opacity="0.6" />
           </g>
         )}
 

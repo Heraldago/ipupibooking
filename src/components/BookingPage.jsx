@@ -208,8 +208,29 @@ export default function BookingPage({ onNavigateToAdmin }) {
     <div className="booking-page-container">
       <div className="booking-inner-wrap">
         
-        {/* Top bar: Language Switcher */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginBottom: '16px' }}>
+        {/* Top bar: Staff Link & Language Switcher */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
+          <button
+            type="button"
+            onClick={onNavigateToAdmin}
+            style={{
+              background: '#FFFFFF',
+              border: '1.5px solid var(--color-accent-gold)',
+              color: 'var(--color-primary-charcoal)',
+              borderRadius: '0px',
+              padding: '6px 14px',
+              fontSize: '13px',
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+          >
+            <span>⚙︎ Planimetria & Gestione Staff</span>
+            <span style={{ color: 'var(--color-accent-gold)' }}>→</span>
+          </button>
+
           <div style={{ display: 'flex', gap: '8px' }}>
             <button
               type="button"

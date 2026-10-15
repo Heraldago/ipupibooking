@@ -1,23 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import TablePlan, { TABLES, PRESET_COMBOS } from './TablePlan';
+import TablePlan, { TABLES } from './TablePlan';
 import { supabase, isSupabaseConfigured } from '../supabaseClient';
 import { adminTranslations } from '../i18n';
 import { 
   ArrowLeft, 
   Users, 
-  Calendar, 
+  Calendar as CalendarIcon, 
   Clock, 
   Utensils, 
   RefreshCw, 
   Check, 
   X,
-  Phone,
-  Mail,
-  MessageSquare,
+  Phone, 
+  Mail, 
+  MessageSquare, 
   AlertCircle,
-  UserCheck,
-  UserX,
-  Sparkles
+  UserCheck, 
+  UserX, 
+  ChevronLeft,
+  ChevronRight,
+  Sparkles,
+  CheckCircle2
 } from 'lucide-react';
 
 const SEED_RESERVATIONS = [
@@ -27,7 +30,7 @@ const SEED_RESERVATIONS = [
     customer_phone: '+45 28 91 44 20',
     customer_email: 'julian.andersen@dk-mail.dk',
     guests_count: 7,
-    booking_date: '2026-10-17', // Sabato
+    booking_date: '2026-10-17', // Sabato sera
     booking_time: '20:00',
     service_type: 'dinner',
     notes: 'Compleanno in famiglia. Gradita saletta riservata.',
@@ -75,17 +78,39 @@ const SEED_RESERVATIONS = [
   }
 ];
 
+const ALL_TABLE_IDS = ['14', '13', '12', '10', '11', '9', '8', '7', '6', '5', '4', '3', '2'];
+
+// Italian Date Formatting Helper
+function formatDateItalian(isoStr) {
+  try {
+    const [y, m, d] = (isoStr || '2026-10-17').split('-').map(Number);
+    const date = new Date(y, m - 1, d);
+    const days = ['Domenica', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato'];
+    const months = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'];
+    return {
+      dayName: days[date.getDay()],
+      dayNum: d,
+      monthName: months[m - 1],
+      year: y,
+      fullText: `${days[date.getDay()]}, ${d} ${months[m - 1]} ${y}`
+    };
+  } catch {
+    return { dayName: '', dayNum: '', monthName: '', year: '', fullText: isoStr };
+  }
+}
+
 export default function AdminPage({ onNavigateToBooking }) {
   const [adminLang, setAdminLang] = useState('it');
   const t = adminTranslations[adminLang];
 
   // Active date filter (Default to Saturday 2026-10-17 for Julian Andersen)
   const [selectedDate, setSelectedDate] = useState('2026-10-17');
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
-  // Reservations state
+  // Reservations state with persistence
   const [reservations, setReservations] = useState(() => {
     try {
-      const saved = localStorage.getItem('pupi_admin_reservations_v2');
+      const saved = localStorage.getItem('pupi_admin_reservations_v3');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
@@ -116,7 +141,7 @@ export default function AdminPage({ onNavigateToBooking }) {
   // Save reservations to localStorage
   useEffect(() => {
     try {
-      localStorage.setItem('pupi_admin_reservations_v2', JSON.stringify(reservations));
+      localStorage.setItem('pupi_admin_reservations_v3', JSON.stringify(reservations));
     } catch {}
   }, [reservations]);
 
@@ -129,7 +154,6 @@ export default function AdminPage({ onNavigateToBooking }) {
           .select('*')
           .order('created_at', { ascending: false });
         if (!error && data && data.length > 0) {
-          // Merge with seed to preserve Julian Andersen demo if needed
           setReservations(data);
         }
       }
@@ -160,12 +184,36 @@ export default function AdminPage({ onNavigateToBooking }) {
     (r) => r.booking_date === selectedDate && ['accepted', 'seated', 'noshow'].includes(r.status)
   );
 
-  // Accept a pending request
+  const totalGuestsOnDate = dayAcceptedReservations.reduce(
+    (sum, r) => sum + (parseInt(r.guests_count) || 0),
+    0
+  );
+
+  // Change date by delta days (-1 or +1)
+  const changeDateByDelta = (delta) => {
+    try {
+      const [y, m, d] = selectedDate.split('-').map(Number);
+      const date = new Date(y, m - 1, d);
+      date.setDate(date.getDate() + delta);
+      const nextY = date.getFullYear();
+      const nextM = String(date.getMonth() + 1).padStart(2, '0');
+      const nextD = String(date.getDate()).padStart(2, '0');
+      setSelectedDate(`${nextY}-${nextM}-${nextD}`);
+      // Clear active assigning if switching date
+      if (activeAssigningRes && activeAssigningRes.booking_date !== `${nextY}-${nextM}-${nextD}`) {
+        setActiveAssigningRes(null);
+        setStaffSelectedTables([]);
+      }
+    } catch (e) {
+      console.error('Error changing date', e);
+    }
+  };
+
+  // Accept a pending request and start table assignment immediately
   const handleAcceptRequest = (res) => {
     setReservations((prev) =>
       prev.map((r) => (r.id === res.id ? { ...r, status: 'accepted' } : r))
     );
-    // Switch view to request's date and activate table assignment
     setSelectedDate(res.booking_date);
     startAssigningReservation(res);
   };
@@ -195,11 +243,54 @@ export default function AdminPage({ onNavigateToBooking }) {
   // Start assigning tables for a reservation
   const startAssigningReservation = (res) => {
     setActiveAssigningRes(res);
-    setStaffSelectedTables(res.assigned_tables || []);
-    // If 6-8 pax, suggest Saletta
-    if (res.guests_count >= 6 && (!res.assigned_tables || res.assigned_tables.length === 0)) {
+    const existing = res.assigned_tables || [];
+    setStaffSelectedTables(existing);
+
+    // If 6-8 pax and no tables yet assigned, auto-suggest Saletta 14+13+12
+    if (res.guests_count >= 6 && existing.length === 0) {
       setStaffSelectedTables(['14', '13', '12']);
       setIsSalettaMerged(true);
+      try {
+        localStorage.setItem('pupi_saletta_merged', 'true');
+      } catch {}
+    }
+
+    // Smoothly scroll down to the floor plan for easy interaction
+    const planElement = document.getElementById('floor-plan-section');
+    if (planElement) {
+      planElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  // Toggle table selection for the active reservation
+  const toggleStaffTable = (id) => {
+    if (staffSelectedTables.includes(id)) {
+      setStaffSelectedTables(staffSelectedTables.filter((t) => t !== id));
+    } else {
+      setStaffSelectedTables([...staffSelectedTables, id]);
+    }
+  };
+
+  // Quick 1-tap Saletta assignment (14, 13, 12)
+  const assignSalettaForActive = () => {
+    setStaffSelectedTables(['14', '13', '12']);
+    setIsSalettaMerged(true);
+    try {
+      localStorage.setItem('pupi_saletta_merged', 'true');
+    } catch {}
+  };
+
+  // Unassign single table from a reservation in 1-click
+  const unassignTableFromRes = (resId, tableId) => {
+    setReservations((prev) =>
+      prev.map((r) =>
+        r.id === resId
+          ? { ...r, assigned_tables: (r.assigned_tables || []).filter((t) => t !== tableId) }
+          : r
+      )
+    );
+    if (activeAssigningRes && activeAssigningRes.id === resId) {
+      setStaffSelectedTables((prev) => prev.filter((t) => t !== tableId));
     }
   };
 
@@ -207,7 +298,7 @@ export default function AdminPage({ onNavigateToBooking }) {
   const confirmAssignment = () => {
     if (!activeAssigningRes) return;
     if (staffSelectedTables.length === 0) {
-      alert('Seleziona almeno un tavolo sulla piantina per confermare l\'assegnazione.');
+      alert('Seleziona almeno un tavolo (cliccando sui pulsanti o sulla mappa) per confermare.');
       return;
     }
 
@@ -228,27 +319,9 @@ export default function AdminPage({ onNavigateToBooking }) {
       } catch {}
     }
 
-    alert(`Assegnazione completata per ${activeAssigningRes.customer_name}: Tavoli [${staffSelectedTables.join(', ')}].`);
+    alert(`✓ Tavoli [${staffSelectedTables.join(', ')}] assegnati a ${activeAssigningRes.customer_name}.`);
     setActiveAssigningRes(null);
     setStaffSelectedTables([]);
-  };
-
-  // Quick 1-click Saletta assignment for 7 pax
-  const assignSalettaForActive = () => {
-    setStaffSelectedTables(['14', '13', '12']);
-    setIsSalettaMerged(true);
-    try {
-      localStorage.setItem('pupi_saletta_merged', 'true');
-    } catch {}
-  };
-
-  // Toggle table selection
-  const toggleStaffTable = (id) => {
-    if (staffSelectedTables.includes(id)) {
-      setStaffSelectedTables(staffSelectedTables.filter((t) => t !== id));
-    } else {
-      setStaffSelectedTables([...staffSelectedTables, id]);
-    }
   };
 
   const calculateStaffCapacity = () => {
@@ -261,11 +334,20 @@ export default function AdminPage({ onNavigateToBooking }) {
     }, 0);
   };
 
+  const formattedDate = formatDateItalian(selectedDate);
+  const todayIso = new Date().toISOString().split('T')[0];
+
+  const getDayBadge = () => {
+    if (selectedDate === todayIso) return 'OGGI';
+    if (selectedDate === '2026-10-17') return 'SABATO SERA · JULIAN ANDERSEN';
+    return formattedDate.dayName.toUpperCase();
+  };
+
   return (
-    <div style={{ minHeight: '100vh', background: '#FAF6F4', padding: '24px 20px' }}>
-      <div style={{ maxWidth: '1180px', margin: '0 auto' }}>
+    <div className="admin-page-container">
+      <div className="admin-inner-wrap">
         
-        {/* Top bar: Navigation & Language */}
+        {/* TOP BAR: Navigation & Language */}
         <div style={{
           display: 'flex',
           justifyContent: 'space-between',
@@ -283,7 +365,7 @@ export default function AdminPage({ onNavigateToBooking }) {
               display: 'inline-flex',
               alignItems: 'center',
               gap: '8px',
-              padding: '8px 16px',
+              padding: '10px 16px',
               background: '#FFFFFF',
               border: '1.5px solid #1C1917',
               borderRadius: '0px',
@@ -306,7 +388,7 @@ export default function AdminPage({ onNavigateToBooking }) {
                 background: adminLang === 'it' ? '#FAF6F4' : '#FFFFFF',
                 border: '1.5px solid ' + (adminLang === 'it' ? 'var(--color-accent-gold)' : 'var(--color-neutral-border)'),
                 borderRadius: '0px',
-                padding: '6px 14px',
+                padding: '8px 14px',
                 fontSize: '13px',
                 fontWeight: 700,
                 cursor: 'pointer'
@@ -322,7 +404,7 @@ export default function AdminPage({ onNavigateToBooking }) {
                 background: adminLang === 'en' ? '#FAF6F4' : '#FFFFFF',
                 border: '1.5px solid ' + (adminLang === 'en' ? 'var(--color-accent-gold)' : 'var(--color-neutral-border)'),
                 borderRadius: '0px',
-                padding: '6px 14px',
+                padding: '8px 14px',
                 fontSize: '13px',
                 fontWeight: 700,
                 cursor: 'pointer'
@@ -334,22 +416,23 @@ export default function AdminPage({ onNavigateToBooking }) {
         </div>
 
         {/* Dashboard Title Header */}
-        <div style={{ marginBottom: '20px' }}>
-          <h1 style={{ fontFamily: 'DALI, serif', fontSize: '30px', margin: '0 0 4px 0', color: '#1C1917' }}>
-            I Pupi Siciliani · Gestione Sala & Prenotazioni
+        <div style={{ marginBottom: '22px' }}>
+          <h1 style={{ fontFamily: 'DALI, serif', fontSize: 'clamp(26px, 4vw, 34px)', margin: '0 0 6px 0', color: '#1C1917' }}>
+            I Pupi Siciliani · Gestione Sala & Tavoli
           </h1>
-          <p style={{ margin: 0, color: 'var(--color-neutral-muted)', fontSize: '13px' }}>
-            Pannello operativo per approvazione richieste, assegnazione tavoli nominale e planimetria interattiva.
+          <p style={{ margin: 0, color: 'var(--color-neutral-muted)', fontSize: '13px', lineHeight: 1.4 }}>
+            Controllo presenze, approvazione richieste clienti ed assegnazione nominale dei tavoli con planimetria interattiva.
           </p>
         </div>
 
-        {/* SECTION 1: ZONA RICHIESTE (PARTE ALTA COME RICHIESTO) */}
+        {/* SECTION 1: ZONA RICHIESTE (PARTE ALTA) */}
         <div style={{
           background: '#FFFFFF',
           border: '1.5px solid #1C1917',
           padding: '20px',
           marginBottom: '24px',
-          borderRadius: '0px'
+          borderRadius: '0px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.03)'
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -364,8 +447,8 @@ export default function AdminPage({ onNavigateToBooking }) {
               }}>
                 Zona Richieste in Arrivo
               </span>
-              <span style={{ fontSize: '13px', color: 'var(--color-neutral-muted)' }}>
-                {pendingRequests.length} {pendingRequests.length === 1 ? 'richiesta in attesa di approvazione' : 'richieste in attesa'}
+              <span style={{ fontSize: '13px', color: 'var(--color-neutral-muted)', fontWeight: 600 }}>
+                {pendingRequests.length} {pendingRequests.length === 1 ? 'richiesta in attesa' : 'richieste in attesa'}
               </span>
             </div>
 
@@ -375,12 +458,13 @@ export default function AdminPage({ onNavigateToBooking }) {
               style={{
                 background: '#FFFFFF',
                 border: '1px solid #D1D5DB',
-                padding: '5px 10px',
+                padding: '6px 12px',
                 fontSize: '12px',
                 cursor: 'pointer',
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '4px'
+                gap: '6px',
+                fontWeight: 600
               }}
             >
               <RefreshCw size={13} />
@@ -394,9 +478,10 @@ export default function AdminPage({ onNavigateToBooking }) {
               textAlign: 'center',
               color: 'var(--color-neutral-muted)',
               background: '#FAF6F4',
-              border: '1px dashed #D1D5DB'
+              border: '1px dashed #D1D5DB',
+              fontSize: '14px'
             }}>
-              ✓ Tutte le richieste sono state gestite. Nessuna richiesta in sospeso.
+              ✓ Tutte le richieste sono state gestite. Nessuna prenotazione in sospeso.
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -414,8 +499,8 @@ export default function AdminPage({ onNavigateToBooking }) {
                     gap: '16px'
                   }}
                 >
-                  <div style={{ flex: 1, minWidth: '260px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
+                  <div style={{ flex: 1, minWidth: '240px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px', flexWrap: 'wrap' }}>
                       <strong style={{ fontSize: '18px', color: '#1C1917' }}>{res.customer_name}</strong>
                       <span style={{
                         background: '#1C1917',
@@ -433,7 +518,7 @@ export default function AdminPage({ onNavigateToBooking }) {
                         fontSize: '12px',
                         fontWeight: 600
                       }}>
-                        {res.booking_date === '2026-10-17' ? 'Sabato sera (17 Ott)' : res.booking_date} · {res.booking_time}
+                        {res.booking_date === '2026-10-17' ? 'Sabato sera (17 Ott)' : res.booking_date} · ore {res.booking_time}
                       </span>
                     </div>
 
@@ -457,13 +542,14 @@ export default function AdminPage({ onNavigateToBooking }) {
                     )}
                   </div>
 
-                  {/* Quick Action buttons for Request: Accetta / Rifiuta / Contatta */}
-                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  {/* Actions for Request: Accetta / Rifiuta / Contatta */}
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', width: '100%', maxWidth: '340px' }}>
                     <button
                       type="button"
                       onClick={() => handleAcceptRequest(res)}
                       style={{
-                        padding: '8px 16px',
+                        flex: '1 1 140px',
+                        padding: '10px 14px',
                         background: '#1C1917',
                         color: '#FFFFFF',
                         border: 'none',
@@ -473,18 +559,19 @@ export default function AdminPage({ onNavigateToBooking }) {
                         cursor: 'pointer',
                         display: 'inline-flex',
                         alignItems: 'center',
+                        justifyContent: 'center',
                         gap: '6px'
                       }}
                     >
                       <Check size={16} color="#B5A642" />
-                      <span>Accetta Richiesta</span>
+                      <span>Accetta ed Assegna</span>
                     </button>
 
                     <button
                       type="button"
                       onClick={() => handleRejectRequest(res.id)}
                       style={{
-                        padding: '8px 14px',
+                        padding: '10px 14px',
                         background: '#FFFFFF',
                         color: '#DC2626',
                         border: '1px solid #DC2626',
@@ -494,7 +581,8 @@ export default function AdminPage({ onNavigateToBooking }) {
                         cursor: 'pointer',
                         display: 'inline-flex',
                         alignItems: 'center',
-                        gap: '6px'
+                        justifyContent: 'center',
+                        gap: '4px'
                       }}
                     >
                       <X size={15} />
@@ -505,7 +593,7 @@ export default function AdminPage({ onNavigateToBooking }) {
                       type="button"
                       onClick={() => setContactModalRes(res)}
                       style={{
-                        padding: '8px 14px',
+                        padding: '10px 14px',
                         background: '#FFFFFF',
                         color: '#1C1917',
                         border: '1px solid #D1D5DB',
@@ -515,6 +603,7 @@ export default function AdminPage({ onNavigateToBooking }) {
                         cursor: 'pointer',
                         display: 'inline-flex',
                         alignItems: 'center',
+                        justifyContent: 'center',
                         gap: '6px'
                       }}
                     >
@@ -528,224 +617,267 @@ export default function AdminPage({ onNavigateToBooking }) {
           )}
         </div>
 
-        {/* SECTION 2: SELETTORE DEL GIORNO & PLANIMETRIA CON ASSEGNAZIONE */}
-        <div style={{
-          background: '#FFFFFF',
-          border: '1.5px solid #D1D5DB',
-          padding: '20px',
-          marginBottom: '24px',
-          borderRadius: '0px'
-        }}>
-          {/* Day Selector Bar */}
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '16px',
-            borderBottom: '1px solid #E5E7EB',
-            paddingBottom: '14px',
-            flexWrap: 'wrap',
-            gap: '12px'
-          }}>
-            <div>
-              <span style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 700, color: 'var(--color-neutral-muted)', display: 'block' }}>
-                Giorno Selezionato:
+        {/* SECTION 2: SELETTORE DATA GRANDE & INTUITIVO CON FRECCE E CALENDARIO */}
+        <div className="admin-date-hero">
+          <div className="admin-date-nav-main">
+            {/* Left Arrow Button */}
+            <button
+              type="button"
+              onClick={() => changeDateByDelta(-1)}
+              className="date-arrow-btn"
+              title="Giorno precedente"
+              aria-label="Giorno precedente"
+            >
+              <ChevronLeft size={28} />
+            </button>
+
+            {/* Large Center Date Display */}
+            <div className="date-center-content">
+              <span className="date-day-status-pill">
+                {getDayBadge()}
               </span>
-              <h2 style={{ margin: '2px 0 0 0', fontSize: '20px', color: '#1C1917' }}>
-                {selectedDate === '2026-10-17' ? 'Sabato Sera · 17 Ottobre 2026' : `Data: ${selectedDate}`}
+
+              <h2 className="date-main-heading">
+                {formattedDate.fullText}
               </h2>
+
+              <div className="date-stats-sub">
+                {dayAcceptedReservations.length} {dayAcceptedReservations.length === 1 ? 'prenotazione attiva' : 'prenotazioni attive'} · <strong>{totalGuestsOnDate} coperti</strong> confermati
+              </div>
             </div>
 
-            {/* Quick Date Pills */}
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+            {/* Right Arrow Button */}
+            <button
+              type="button"
+              onClick={() => changeDateByDelta(1)}
+              className="date-arrow-btn"
+              title="Giorno successivo"
+              aria-label="Giorno successivo"
+            >
+              <ChevronRight size={28} />
+            </button>
+          </div>
+
+          {/* Quick Action Bar: Apri Calendario, Oggi, Sabato 17 Ott */}
+          <div className="admin-date-actions-bar">
+            <button
+              type="button"
+              onClick={() => setIsCalendarOpen(true)}
+              className="date-cta-btn primary"
+            >
+              <CalendarIcon size={16} />
+              <span>Apri Calendario Mensile</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setSelectedDate(todayIso)}
+              className={`date-cta-btn ${selectedDate === todayIso ? 'primary' : 'secondary'}`}
+            >
+              <span>Vai a Oggi</span>
+            </button>
+
+            {selectedDate !== '2026-10-17' && (
               <button
                 type="button"
                 onClick={() => setSelectedDate('2026-10-17')}
-                style={{
-                  padding: '7px 14px',
-                  background: selectedDate === '2026-10-17' ? '#1C1917' : '#FFFFFF',
-                  color: selectedDate === '2026-10-17' ? '#FFFFFF' : '#1C1917',
-                  border: '1.5px solid #1C1917',
-                  fontSize: '12px',
-                  fontWeight: 700,
-                  cursor: 'pointer'
-                }}
+                className="date-cta-btn secondary demo"
               >
-                ★ Sabato sera (17 Ott)
+                <span>★ Sabato sera (17 Ott · Julian Andersen)</span>
               </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  const today = new Date().toISOString().split('T')[0];
-                  setSelectedDate(today);
-                }}
-                style={{
-                  padding: '7px 14px',
-                  background: selectedDate === new Date().toISOString().split('T')[0] ? '#1C1917' : '#FFFFFF',
-                  color: selectedDate === new Date().toISOString().split('T')[0] ? '#FFFFFF' : '#1C1917',
-                  border: '1px solid #D1D5DB',
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  cursor: 'pointer'
-                }}
-              >
-                Oggi
-              </button>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ fontSize: '12px', color: 'var(--color-neutral-muted)' }}>Altro giorno:</span>
-                <input
-                  type="date"
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  style={{
-                    padding: '6px 8px',
-                    border: '1px solid #D1D5DB',
-                    fontSize: '12px',
-                    borderRadius: '0px'
-                  }}
-                />
-              </div>
-            </div>
+            )}
           </div>
+        </div>
 
-          {/* ACTIVE ASSIGNMENT BANNER WHEN STAFF SELECTS A BOOKING */}
+        {/* SECTION 3: PLANIMETRIA ED ASSEGNAZIONE TAVOLI */}
+        <div 
+          id="floor-plan-section"
+          style={{
+            background: '#FFFFFF',
+            border: '1.5px solid #1C1917',
+            padding: '20px',
+            marginBottom: '24px',
+            borderRadius: '0px'
+          }}
+        >
+          {/* ACTIVE ASSIGNMENT HERO BANNER */}
           {activeAssigningRes && (
-            <div style={{
-              background: '#FFFDF5',
-              border: '2px solid #B5A642',
-              padding: '14px 18px',
-              marginBottom: '16px',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              gap: '12px'
-            }}>
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ background: '#B5A642', color: '#FFF', padding: '2px 8px', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase' }}>
-                    Assegnazione in corso
-                  </span>
-                  <strong style={{ fontSize: '16px', color: '#1C1917' }}>
-                    {activeAssigningRes.customer_name} ({activeAssigningRes.guests_count} persone)
-                  </strong>
-                </div>
-                <div style={{ fontSize: '12px', color: 'var(--color-neutral-muted)', marginTop: '4px' }}>
-                  Seleziona i tavoli sulla griglia per questa prenotazione. Tavoli attualmente scelti:{' '}
-                  <strong style={{ color: '#1C1917' }}>
-                    {staffSelectedTables.length > 0 ? staffSelectedTables.join(', ') : 'Nessuno'}
-                  </strong>{' '}
-                  ({calculateStaffCapacity()} pax)
-                </div>
-              </div>
+            <div className="assignment-hero-card">
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'flex-start',
+                flexWrap: 'wrap',
+                gap: '12px',
+                marginBottom: '14px',
+                borderBottom: '1px solid #FDE047',
+                paddingBottom: '12px'
+              }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
+                    <span style={{
+                      background: '#1C1917',
+                      color: '#FFF',
+                      padding: '3px 8px',
+                      fontSize: '11px',
+                      fontWeight: 800,
+                      textTransform: 'uppercase',
+                      letterSpacing: '1px'
+                    }}>
+                      Assegnazione in corso
+                    </span>
+                    <strong style={{ fontSize: '18px', color: '#1C1917' }}>
+                      {activeAssigningRes.customer_name}
+                    </strong>
+                    <span style={{
+                      background: '#B5A642',
+                      color: '#FFF',
+                      padding: '2px 8px',
+                      fontSize: '12px',
+                      fontWeight: 700
+                    }}>
+                      {activeAssigningRes.guests_count} persone
+                    </span>
+                    <span style={{ fontSize: '13px', color: 'var(--color-neutral-muted)' }}>
+                      · ore {activeAssigningRes.booking_time}
+                    </span>
+                  </div>
 
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                {activeAssigningRes.guests_count >= 6 && (
+                  <div style={{ fontSize: '13px', color: '#444' }}>
+                    Posti selezionati:{' '}
+                    <strong style={{
+                      color: calculateStaffCapacity() >= activeAssigningRes.guests_count ? '#059669' : '#B91C1C',
+                      fontSize: '14px'
+                    }}>
+                      {calculateStaffCapacity()} su {activeAssigningRes.guests_count} richiesti
+                    </strong>
+                    {calculateStaffCapacity() >= activeAssigningRes.guests_count && ' ✓'}
+                    {' · '}Tavoli scelti:{' '}
+                    <strong style={{ color: '#1C1917' }}>
+                      {staffSelectedTables.length > 0 ? staffSelectedTables.join(', ') : 'Nessuno'}
+                    </strong>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                   <button
                     type="button"
-                    onClick={assignSalettaForActive}
+                    onClick={confirmAssignment}
                     style={{
-                      padding: '7px 12px',
-                      background: '#FFF5F6',
-                      border: '1.5px solid #B5A642',
-                      color: '#333',
-                      fontSize: '12px',
+                      padding: '10px 18px',
+                      background: '#1C1917',
+                      color: '#FFFFFF',
+                      border: 'none',
+                      fontSize: '13px',
                       fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    <Check size={16} color="#B5A642" />
+                    <span>✓ Salva Assegnazione ({staffSelectedTables.length} tavoli)</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveAssigningRes(null);
+                      setStaffSelectedTables([]);
+                    }}
+                    style={{
+                      padding: '10px 14px',
+                      background: '#FFFFFF',
+                      border: '1px solid #D1D5DB',
+                      color: '#666',
+                      fontSize: '13px',
+                      fontWeight: 600,
                       cursor: 'pointer'
                     }}
                   >
-                    ✦ Seleziona Saletta (14+13+12)
+                    Annulla
                   </button>
-                )}
+                </div>
+              </div>
 
-                <button
-                  type="button"
-                  onClick={confirmAssignment}
-                  style={{
-                    padding: '7px 16px',
-                    background: '#1C1917',
-                    color: '#FFF',
-                    border: 'none',
-                    fontSize: '12px',
-                    fontWeight: 700,
-                    cursor: 'pointer'
-                  }}
-                >
-                  ✓ Salva Assegnazione Tavoli
-                </button>
+              {/* Table Quick-Select Pills Bar */}
+              <div>
+                <div style={{
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  color: '#1C1917',
+                  marginBottom: '8px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px'
+                }}>
+                  Tavoli disponibili (clicca per selezionare o togliere):
+                </div>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    setActiveAssigningRes(null);
-                    setStaffSelectedTables([]);
-                  }}
-                  style={{
-                    padding: '7px 12px',
-                    background: '#FFFFFF',
-                    border: '1px solid #D1D5DB',
-                    color: '#666',
-                    fontSize: '12px',
-                    cursor: 'pointer'
-                  }}
-                >
-                  Annulla
-                </button>
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+                  {ALL_TABLE_IDS.map((tid) => {
+                    const isSel = staffSelectedTables.includes(tid);
+                    const occupiedByOther = tableAssignments[tid] && tableAssignments[tid].id !== activeAssigningRes.id;
+                    const isSalettaTable = ['14', '13', '12'].includes(tid);
+
+                    return (
+                      <button
+                        key={tid}
+                        type="button"
+                        onClick={() => toggleStaffTable(tid)}
+                        className={`table-pill-button ${isSel ? 'selected' : ''} ${occupiedByOther ? 'occupied' : ''}`}
+                        title={occupiedByOther ? `Occupato da ${tableAssignments[tid].customer_name}` : `Tavolo ${tid}`}
+                      >
+                        {isSel ? `✓ Tavolo ${tid}` : isSalettaTable ? `Tavolo ${tid} (Saletta)` : `Tavolo ${tid}`}
+                        {occupiedByOther && ` [${tableAssignments[tid].customer_name.split(' ')[0]}]`}
+                      </button>
+                    );
+                  })}
+
+                  {activeAssigningRes.guests_count >= 6 && (
+                    <button
+                      type="button"
+                      onClick={assignSalettaForActive}
+                      style={{
+                        padding: '8px 14px',
+                        background: '#FFF5F6',
+                        border: '1.5px solid #B5A642',
+                        color: '#1C1917',
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        borderRadius: '0px'
+                      }}
+                    >
+                      ✦ Unisci Saletta 14+13+12 (7 pax)
+                    </button>
+                  )}
+
+                  {staffSelectedTables.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setStaffSelectedTables([])}
+                      style={{
+                        padding: '8px 12px',
+                        background: 'transparent',
+                        border: '1px dashed #DC2626',
+                        color: '#DC2626',
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      ✕ Svuota
+                    </button>
+                  )}
+                </div>
+
+                <div style={{ marginTop: '8px', fontSize: '12px', color: 'var(--color-neutral-muted)' }}>
+                  💡 Puoi anche cliccare direttamente sui tavoli nella mappa sottostante per selezionarli o deselezionarli.
+                </div>
               </div>
             </div>
           )}
-
-          {/* Quick presets row */}
-          <div style={{ marginBottom: '14px' }}>
-            <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-neutral-muted)', marginBottom: '6px', textTransform: 'uppercase' }}>
-              Combinazioni Rapide:
-            </div>
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              {PRESET_COMBOS.map((combo) => (
-                <button
-                  key={combo.id}
-                  type="button"
-                  onClick={() => {
-                    setStaffSelectedTables(combo.tables);
-                    if (combo.isSalettaMerge) {
-                      setIsSalettaMerged(true);
-                      try { localStorage.setItem('pupi_saletta_merged', 'true'); } catch {}
-                    }
-                  }}
-                  style={{
-                    padding: '5px 12px',
-                    background: combo.isSalettaMerge ? '#FFF5F6' : '#FFFFFF',
-                    border: '1.2px solid ' + (combo.isSalettaMerge ? '#B5A642' : '#D1D5DB'),
-                    borderRadius: '0px',
-                    fontSize: '11px',
-                    fontWeight: 700,
-                    color: '#333333',
-                    cursor: 'pointer'
-                  }}
-                >
-                  {combo.label}
-                </button>
-              ))}
-              <button
-                type="button"
-                onClick={() => setStaffSelectedTables([])}
-                style={{
-                  padding: '5px 12px',
-                  background: '#FFF5F6',
-                  border: '1px solid #FDB4BF',
-                  borderRadius: '0px',
-                  fontSize: '11px',
-                  fontWeight: 700,
-                  color: '#B91C1C',
-                  cursor: 'pointer'
-                }}
-              >
-                ✕ Deseleziona tutti
-              </button>
-            </div>
-          </div>
 
           {/* Interactive Grid Floor Plan Component */}
           <TablePlan
@@ -759,34 +891,34 @@ export default function AdminPage({ onNavigateToBooking }) {
           />
         </div>
 
-        {/* SECTION 3: ACCETTAZIONI DEL GIORNO SELEZIONATO */}
+        {/* SECTION 4: ACCETTAZIONI DEL GIORNO SELEZIONATO */}
         <div style={{
           background: '#FFFFFF',
           border: '1.5px solid #D1D5DB',
           padding: '20px',
           borderRadius: '0px'
         }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
             <div>
-              <h3 style={{ margin: '0 0 2px 0', fontSize: '18px', color: '#1C1917' }}>
-                Accettazioni del Giorno ({selectedDate})
+              <h3 style={{ margin: '0 0 2px 0', fontSize: '19px', color: '#1C1917' }}>
+                Accettazioni del Giorno ({formattedDate.dayName} {formattedDate.dayNum} {formattedDate.monthName})
               </h3>
               <p style={{ margin: 0, fontSize: '13px', color: 'var(--color-neutral-muted)' }}>
-                Seleziona una prenotazione per assegnare o modificare i tavoli sulla piantina.
+                Gestisci lo stato degli ospiti (siede / non presenta) e assegna i tavoli.
               </p>
             </div>
 
-            <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-accent-gold)' }}>
-              Totale Ospiti: {dayAcceptedReservations.reduce((sum, r) => sum + (parseInt(r.guests_count) || 0), 0)} pax
+            <span style={{ fontSize: '14px', fontWeight: 800, color: 'var(--color-accent-gold)' }}>
+              Totale Ospiti: {totalGuestsOnDate} pax
             </span>
           </div>
 
           {dayAcceptedReservations.length === 0 ? (
-            <div style={{ padding: '30px', textAlign: 'center', color: 'var(--color-neutral-muted)', background: '#FAF6F4' }}>
-              Nessuna prenotazione accettata per questo giorno.
+            <div style={{ padding: '30px', textAlign: 'center', color: 'var(--color-neutral-muted)', background: '#FAF6F4', fontSize: '14px' }}>
+              Nessuna prenotazione accettata per questa data.
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {dayAcceptedReservations.map((res) => {
                 const isCurrentAssigning = activeAssigningRes && activeAssigningRes.id === res.id;
                 const hasTables = res.assigned_tables && res.assigned_tables.length > 0;
@@ -797,44 +929,73 @@ export default function AdminPage({ onNavigateToBooking }) {
                     style={{
                       background: isCurrentAssigning ? '#FFFDF5' : '#FFFFFF',
                       border: isCurrentAssigning ? '2px solid #B5A642' : '1px solid #E5E7EB',
-                      padding: '14px 16px',
+                      padding: '16px',
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center',
                       flexWrap: 'wrap',
-                      gap: '12px'
+                      gap: '14px'
                     }}
                   >
-                    <div style={{ minWidth: '240px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                        <strong style={{ fontSize: '16px', color: '#1C1917' }}>{res.customer_name}</strong>
+                    <div style={{ minWidth: '220px', flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px', flexWrap: 'wrap' }}>
+                        <strong style={{ fontSize: '17px', color: '#1C1917' }}>{res.customer_name}</strong>
                         <span style={{ fontWeight: 800, fontSize: '13px', color: 'var(--color-accent-gold)' }}>
-                          {res.guests_count} pax
+                          {res.guests_count} persone
                         </span>
                         <span style={{ fontSize: '12px', color: 'var(--color-neutral-muted)' }}>
                           · ore {res.booking_time}
                         </span>
                       </div>
 
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', fontSize: '12px' }}>
-                        <span style={{ color: 'var(--color-neutral-muted)' }}>Tavoli assegnati:</span>
+                      {/* Tables row with 1-click unassign chips */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', fontSize: '12px' }}>
+                        <span style={{ color: 'var(--color-neutral-muted)', fontWeight: 600 }}>Tavoli assegnati:</span>
                         {hasTables ? (
-                          <span style={{
-                            background: '#1C1917',
-                            color: '#FFFFFF',
-                            padding: '2px 8px',
-                            fontWeight: 800
-                          }}>
-                            {res.assigned_tables.join(', ')}
-                          </span>
+                          res.assigned_tables.map((tid) => (
+                            <span
+                              key={tid}
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                background: '#1C1917',
+                                color: '#FFFFFF',
+                                padding: '3px 8px',
+                                fontWeight: 800,
+                                fontSize: '12px'
+                              }}
+                            >
+                              Tavolo {tid}
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  unassignTableFromRes(res.id, tid);
+                                }}
+                                style={{
+                                  background: 'none',
+                                  border: 'none',
+                                  color: '#FDB4BF',
+                                  cursor: 'pointer',
+                                  padding: '0 2px',
+                                  fontSize: '11px',
+                                  lineHeight: 1
+                                }}
+                                title={`Rimuovi tavolo ${tid}`}
+                              >
+                                ✕
+                              </button>
+                            </span>
+                          ))
                         ) : (
                           <span style={{ color: '#B91C1C', fontWeight: 700 }}>
-                            ⚠️ Da assegnare
+                            ⚠️ Nessun tavolo assegnato
                           </span>
                         )}
 
                         {res.notes && (
-                          <span style={{ color: '#666', fontStyle: 'italic', marginLeft: '6px' }}>
+                          <span style={{ color: '#666', fontStyle: 'italic', marginLeft: '6px', width: '100%' }}>
                             «{res.notes}»
                           </span>
                         )}
@@ -848,7 +1009,7 @@ export default function AdminPage({ onNavigateToBooking }) {
                         type="button"
                         onClick={() => handleSetStatus(res.id, res.status === 'seated' ? 'accepted' : 'seated')}
                         style={{
-                          padding: '6px 12px',
+                          padding: '8px 12px',
                           background: res.status === 'seated' ? '#059669' : '#FFFFFF',
                           color: res.status === 'seated' ? '#FFFFFF' : '#059669',
                           border: '1.5px solid #059669',
@@ -869,7 +1030,7 @@ export default function AdminPage({ onNavigateToBooking }) {
                         type="button"
                         onClick={() => handleSetStatus(res.id, res.status === 'noshow' ? 'accepted' : 'noshow')}
                         style={{
-                          padding: '6px 12px',
+                          padding: '8px 12px',
                           background: res.status === 'noshow' ? '#DC2626' : '#FFFFFF',
                           color: res.status === 'noshow' ? '#FFFFFF' : '#666',
                           border: '1px solid ' + (res.status === 'noshow' ? '#DC2626' : '#D1D5DB'),
@@ -890,7 +1051,7 @@ export default function AdminPage({ onNavigateToBooking }) {
                         type="button"
                         onClick={() => setContactModalRes(res)}
                         style={{
-                          padding: '6px 12px',
+                          padding: '8px 12px',
                           background: '#FFFFFF',
                           border: '1px solid #D1D5DB',
                           color: '#1C1917',
@@ -911,7 +1072,7 @@ export default function AdminPage({ onNavigateToBooking }) {
                         type="button"
                         onClick={() => startAssigningReservation(res)}
                         style={{
-                          padding: '6px 14px',
+                          padding: '8px 16px',
                           background: isCurrentAssigning ? '#B5A642' : '#1C1917',
                           color: '#FFFFFF',
                           border: 'none',
@@ -930,29 +1091,24 @@ export default function AdminPage({ onNavigateToBooking }) {
           )}
         </div>
 
+        {/* FULL INTERACTIVE CALENDAR MODAL */}
+        {isCalendarOpen && (
+          <AdminCalendarModal
+            isOpen={isCalendarOpen}
+            onClose={() => setIsCalendarOpen(false)}
+            selectedDate={selectedDate}
+            onSelectDate={(newDate) => {
+              setSelectedDate(newDate);
+              setIsCalendarOpen(false);
+            }}
+            reservations={reservations}
+          />
+        )}
+
         {/* CONTACT MODAL DIALOG */}
         {contactModalRes && (
-          <div style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(0, 0, 0, 0.6)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 9999,
-            padding: '20px'
-          }}>
-            <div style={{
-              background: '#FFFFFF',
-              border: '2px solid #1C1917',
-              maxWidth: '500px',
-              width: '100%',
-              padding: '24px',
-              boxSizing: 'border-box'
-            }}>
+          <div className="admin-cal-modal-overlay">
+            <div className="admin-cal-modal-box">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                 <h3 style={{ margin: 0, fontSize: '20px', color: '#1C1917' }}>
                   Contatta {contactModalRes.customer_name}
@@ -960,7 +1116,7 @@ export default function AdminPage({ onNavigateToBooking }) {
                 <button
                   type="button"
                   onClick={() => setContactModalRes(null)}
-                  style={{ background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer', color: '#666' }}
+                  style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#666' }}
                 >
                   ✕
                 </button>
@@ -973,7 +1129,6 @@ export default function AdminPage({ onNavigateToBooking }) {
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
-                {/* Direct Phone Call */}
                 <a
                   href={`tel:${contactModalRes.customer_phone}`}
                   style={{
@@ -993,7 +1148,6 @@ export default function AdminPage({ onNavigateToBooking }) {
                   <span>Chiama subito: {contactModalRes.customer_phone}</span>
                 </a>
 
-                {/* WhatsApp Chat */}
                 <a
                   href={`https://wa.me/${contactModalRes.customer_phone.replace(/[^0-9]/g, '')}?text=Hej%20${encodeURIComponent(contactModalRes.customer_name)},%20vi%20kontakter%20jer%20angående%20jeres%20reservation%20hos%20I%20Pupi%20Siciliani.`}
                   target="_blank"
@@ -1015,7 +1169,6 @@ export default function AdminPage({ onNavigateToBooking }) {
                   <span>Apri chat WhatsApp</span>
                 </a>
 
-                {/* Direct Email */}
                 {contactModalRes.customer_email && (
                   <a
                     href={`mailto:${contactModalRes.customer_email}?subject=Reservation%20hos%20I%20Pupi%20Siciliani&body=Kære%20${encodeURIComponent(contactModalRes.customer_name)},`}
@@ -1043,7 +1196,7 @@ export default function AdminPage({ onNavigateToBooking }) {
                 onClick={() => setContactModalRes(null)}
                 style={{
                   width: '100%',
-                  padding: '10px',
+                  padding: '12px',
                   background: '#1C1917',
                   color: '#FFFFFF',
                   border: 'none',
@@ -1058,6 +1211,159 @@ export default function AdminPage({ onNavigateToBooking }) {
           </div>
         )}
 
+      </div>
+    </div>
+  );
+}
+
+// Full Month Calendar Modal Component
+function AdminCalendarModal({ isOpen, onClose, selectedDate, onSelectDate, reservations = [] }) {
+  const [viewDate, setViewDate] = useState(() => {
+    try {
+      const [y, m] = (selectedDate || '2026-10-17').split('-').map(Number);
+      return new Date(y, m - 1, 1);
+    } catch {
+      return new Date();
+    }
+  });
+
+  const year = viewDate.getFullYear();
+  const month = viewDate.getMonth();
+
+  const changeMonth = (delta) => {
+    setViewDate(new Date(year, month + delta, 1));
+  };
+
+  const monthNames = [
+    'Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
+    'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'
+  ];
+
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  // 0 is Sunday in JS, so convert to Monday = 0
+  const firstDayIndex = (new Date(year, month, 1).getDay() + 6) % 7;
+
+  const todayIso = new Date().toISOString().split('T')[0];
+
+  return (
+    <div className="admin-cal-modal-overlay" onClick={onClose}>
+      <div className="admin-cal-modal-box" onClick={(e) => e.stopPropagation()}>
+        {/* Header with Month Nav */}
+        <div className="cal-header-row">
+          <button
+            type="button"
+            onClick={() => changeMonth(-1)}
+            style={{
+              background: '#FFFFFF',
+              border: '1.5px solid #1C1917',
+              width: '36px',
+              height: '36px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer'
+            }}
+            aria-label="Mese precedente"
+          >
+            <ChevronLeft size={18} />
+          </button>
+
+          <span className="cal-month-title">
+            {monthNames[month]} {year}
+          </span>
+
+          <button
+            type="button"
+            onClick={() => changeMonth(1)}
+            style={{
+              background: '#FFFFFF',
+              border: '1.5px solid #1C1917',
+              width: '36px',
+              height: '36px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer'
+            }}
+            aria-label="Mese successivo"
+          >
+            <ChevronRight size={18} />
+          </button>
+        </div>
+
+        {/* Weekday Labels (Lun - Dom) */}
+        <div className="cal-weekdays-grid">
+          {['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'].map((d) => (
+            <div key={d}>{d}</div>
+          ))}
+        </div>
+
+        {/* Days Grid */}
+        <div className="cal-days-grid">
+          {/* Empty cells before month start */}
+          {Array.from({ length: firstDayIndex }).map((_, idx) => (
+            <div key={`empty-${idx}`} className="cal-day-cell empty" />
+          ))}
+
+          {/* Month Days */}
+          {Array.from({ length: daysInMonth }).map((_, idx) => {
+            const dayNum = idx + 1;
+            const iso = `${year}-${String(month + 1).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
+            const isSelected = iso === selectedDate;
+            const isToday = iso === todayIso;
+
+            // Check if reservations exist on this date
+            const dayResCount = reservations.filter(
+              (r) => r.booking_date === iso && r.status !== 'rejected'
+            ).length;
+
+            return (
+              <button
+                key={iso}
+                type="button"
+                onClick={() => onSelectDate(iso)}
+                className={`cal-day-cell ${isSelected ? 'selected' : ''} ${isToday ? 'today' : ''}`}
+              >
+                <span>{dayNum}</span>
+                {dayResCount > 0 && <span className="cal-res-dot" title={`${dayResCount} prenotazioni`} />}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Footer Actions */}
+        <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
+          <button
+            type="button"
+            onClick={() => onSelectDate(todayIso)}
+            style={{
+              padding: '8px 14px',
+              background: '#FAF6F4',
+              border: '1px solid #D1D5DB',
+              fontSize: '12px',
+              fontWeight: 700,
+              cursor: 'pointer'
+            }}
+          >
+            Oggi
+          </button>
+
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              padding: '8px 18px',
+              background: '#1C1917',
+              color: '#FFFFFF',
+              border: 'none',
+              fontSize: '12px',
+              fontWeight: 700,
+              cursor: 'pointer'
+            }}
+          >
+            Chiudi
+          </button>
+        </div>
       </div>
     </div>
   );

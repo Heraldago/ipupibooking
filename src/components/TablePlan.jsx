@@ -319,8 +319,16 @@ export default function TablePlan({
         </div>
       )}
 
-      {/* Architectural Top Marker: FINESTRE SU VINDEGADE */}
-      <div style={{ maxWidth: '800px', margin: '0 auto 8px auto' }}>
+      {/* Mobile Scroll Hint */}
+      <div className="mobile-scroll-hint">
+        <span>↔ Scorri la piantina orizzontalmente per esplorare tutti i tavoli</span>
+      </div>
+
+      {/* Responsive Floor Plan Outer & Inner Viewport */}
+      <div className="floorplan-scroll-outer">
+        <div className="floorplan-scroll-inner">
+          {/* Architectural Top Marker: FINESTRE SU VINDEGADE */}
+          <div style={{ maxWidth: '800px', margin: '0 auto 8px auto' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '4px' }}>
           <div style={{ height: '3px', background: 'var(--color-accent-gold)', width: '60px' }}></div>
           <div style={{ flex: 1, height: '0px', borderTop: '2px dashed var(--color-accent-gold)', opacity: 0.8 }}></div>
@@ -746,7 +754,8 @@ export default function TablePlan({
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <span style={{ width: '12px', height: '12px', border: '1px dashed #B5A642' }}></span>
-          Quadratino libero (spostamento)
+        </div>
+      </div>
         </div>
       </div>
     </div>

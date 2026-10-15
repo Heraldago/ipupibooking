@@ -1,27 +1,28 @@
 import React, { useState, useEffect } from 'react';
 
-// Default table configurations with clean numbers (NO "T" prefix as requested)
+// Default table configurations with clean numbers (NO "T" prefix)
 export const DEFAULT_TABLES = {
-  // Sala Principale - Top Row (Finestre su Vindegade)
-  '9':  { id: '9',  label: '9',  name: 'Tavolo 9',  pax: 2, zone: 'Vindegade', row: 0, col: 0, chairs: ['top', 'bottom'] },
-  '10': { id: '10', label: '10', name: 'Tavolo 10', pax: 2, zone: 'Vindegade', row: 0, col: 2, chairs: ['top', 'bottom'] },
-  '11': { id: '11', label: '11', name: 'Tavolo 11', pax: 2, zone: 'Vindegade', row: 0, col: 3, chairs: ['top', 'bottom'] },
-  '2':  { id: '2',  label: '2',  name: 'Tavolo 2',  pax: 2, zone: 'Vindegade', row: 0, col: 6, chairs: ['left', 'right'] },
+  // Sala Principale - 7 columns x 5 rows
+  '9':  { id: '9',  label: '9',  name: 'Tavolo 9',  pax: 2, zone: 'Vindegade', room: 'main', row: 0, col: 0, chairs: ['top', 'bottom'] },
+  '10': { id: '10', label: '10', name: 'Tavolo 10', pax: 2, zone: 'Vindegade', room: 'main', row: 0, col: 2, chairs: ['top', 'bottom'] },
+  '11': { id: '11', label: '11', name: 'Tavolo 11', pax: 2, zone: 'Vindegade', room: 'main', row: 0, col: 3, chairs: ['top', 'bottom'] },
+  '2':  { id: '2',  label: '2',  name: 'Tavolo 2',  pax: 2, zone: 'Vindegade', room: 'main', row: 0, col: 6, chairs: ['left', 'right'] },
 
-  // Sala Principale - Middle Row
-  '7':  { id: '7',  label: '7',  name: 'Tavolo 7',  pax: 2, zone: 'Centro',    row: 2, col: 0, chairs: ['left', 'right'] },
-  '5':  { id: '5',  label: '5',  name: 'Tavolo 5',  pax: 2, zone: 'Centro',    row: 2, col: 4, chairs: ['left', 'right'] },
-  '3':  { id: '3',  label: '3',  name: 'Tavolo 3',  pax: 2, zone: 'Centro',    row: 2, col: 6, chairs: ['top', 'bottom'] },
+  '7':  { id: '7',  label: '7',  name: 'Tavolo 7',  pax: 2, zone: 'Centro',    room: 'main', row: 2, col: 0, chairs: ['left', 'right'] },
+  '5':  { id: '5',  label: '5',  name: 'Tavolo 5',  pax: 2, zone: 'Centro',    room: 'main', row: 2, col: 4, chairs: ['left', 'right'] },
+  '3':  { id: '3',  label: '3',  name: 'Tavolo 3',  pax: 2, zone: 'Centro',    room: 'main', row: 2, col: 6, chairs: ['top', 'bottom'] },
 
-  // Sala Principale - Bottom Row
-  '8':  { id: '8',  label: '8',  name: 'Tavolo 8',  pax: 2, zone: 'Fondo',     row: 4, col: 0, chairs: ['left', 'right'] },
-  '6':  { id: '6',  label: '6',  name: 'Tavolo 6',  pax: 2, zone: 'Fondo',     row: 4, col: 4, chairs: ['left', 'right'] },
-  '4':  { id: '4',  label: '4',  name: 'Tavolo 4',  pax: 2, zone: 'Fondo',     row: 4, col: 6, chairs: ['left', 'right'] },
+  '8':  { id: '8',  label: '8',  name: 'Tavolo 8',  pax: 2, zone: 'Fondo',     room: 'main', row: 4, col: 0, chairs: ['left', 'right'] },
+  '6':  { id: '6',  label: '6',  name: 'Tavolo 6',  pax: 2, zone: 'Fondo',     room: 'main', row: 4, col: 4, chairs: ['left', 'right'] },
+  '4':  { id: '4',  label: '4',  name: 'Tavolo 4',  pax: 2, zone: 'Fondo',     room: 'main', row: 4, col: 6, chairs: ['left', 'right'] },
 
-  // Saletta Privata
-  '14': { id: '14', label: '14', name: 'Tavolo 14', pax: 2, zone: 'Saletta',   row: 5, col: 2, chairs: ['top', 'bottom'] },
-  '12': { id: '12', label: '12', name: 'Tavolo 12', pax: 2, zone: 'Saletta',   row: 6, col: 1, chairs: ['top', 'bottom'] },
-  '13': { id: '13', label: '13', name: 'Tavolo 13', pax: 2, zone: 'Saletta',   row: 6, col: 2, chairs: ['top', 'bottom'] }
+  // Saletta Privata Grid - 3 columns x 2 rows
+  // Table 14 is at row 0, col 0 (ABOVE 12)
+  // Table 12 is at row 1, col 0 (DIRECTLY BELOW 14)
+  // Table 13 is at row 1, col 1 (NEXT TO 12)
+  '14': { id: '14', label: '14', name: 'Tavolo 14', pax: 2, zone: 'Saletta', room: 'saletta', row: 0, col: 0, chairs: ['top', 'bottom'] },
+  '12': { id: '12', label: '12', name: 'Tavolo 12', pax: 2, zone: 'Saletta', room: 'saletta', row: 1, col: 0, chairs: ['top', 'bottom'] },
+  '13': { id: '13', label: '13', name: 'Tavolo 13', pax: 2, zone: 'Saletta', room: 'saletta', row: 1, col: 1, chairs: ['top', 'bottom'] }
 };
 
 export const TABLES = Object.values(DEFAULT_TABLES);
@@ -38,14 +39,18 @@ export const PRESET_COMBOS = [
 export default function TablePlan({
   selectedTables = [],
   onToggleTable,
-  guests,
+  guests = 0,
   occupiedTables = [],
-  onConfigChange
+  onConfigChange,
+  tableAssignments = {}, // { [tableId]: { customer_name, guests_count, booking_time, status } }
+  activeAssigningRes = null,
+  onConfirmAssignment = null,
+  isSalettaMerged: isSalettaMergedProp = null,
+  onToggleSalettaMerge: onToggleSalettaMergeProp = null
 }) {
-  // Load custom table positions and configurations from localStorage
   const [tableData, setTableData] = useState(() => {
     try {
-      const saved = localStorage.getItem('pupi_grid_tables_v3');
+      const saved = localStorage.getItem('pupi_grid_tables_v4');
       if (saved) {
         return { ...DEFAULT_TABLES, ...JSON.parse(saved) };
       }
@@ -55,101 +60,92 @@ export default function TablePlan({
     return DEFAULT_TABLES;
   });
 
-  // Saletta banquet mode state (auto merges 14, 13, 12 in center vertical line with 7 pax)
-  const [isSalettaMerged, setIsSalettaMerged] = useState(() => {
+  const [internalSalettaMerged, setInternalSalettaMerged] = useState(() => {
     try {
-      const saved = localStorage.getItem('pupi_saletta_merged');
-      return saved === 'true';
+      return localStorage.getItem('pupi_saletta_merged') === 'true';
     } catch {
       return false;
     }
   });
 
-  // Selected table for moving or editing
+  const isSalettaMerged = isSalettaMergedProp !== null ? isSalettaMergedProp : internalSalettaMerged;
+
   const [activeTableId, setActiveTableId] = useState(null);
   const [draggedTableId, setDraggedTableId] = useState(null);
 
-  // Sync to parent when tableData changes
   useEffect(() => {
     if (onConfigChange) {
       onConfigChange(tableData);
     }
     try {
-      localStorage.setItem('pupi_grid_tables_v3', JSON.stringify(tableData));
-    } catch (e) {
-      console.warn('Could not save table data', e);
-    }
+      localStorage.setItem('pupi_grid_tables_v4', JSON.stringify(tableData));
+    } catch {}
   }, [tableData, onConfigChange]);
 
-  // Save saletta merge state
-  useEffect(() => {
-    try {
-      localStorage.setItem('pupi_saletta_merged', isSalettaMerged ? 'true' : 'false');
-    } catch {}
-  }, [isSalettaMerged]);
-
-  // Move a table to a specific cell (row, col)
-  const moveTableToCell = (tableId, targetRow, targetCol) => {
-    // Check if cell is occupied by another table
-    const existingTableInCell = Object.values(tableData).find(
-      (t) => t.id !== tableId && t.row === targetRow && t.col === targetCol
-    );
-
-    if (existingTableInCell) {
-      // Swap positions
-      const currentTable = tableData[tableId];
-      setTableData((prev) => ({
-        ...prev,
-        [tableId]: { ...prev[tableId], row: targetRow, col: targetCol },
-        [existingTableInCell.id]: { ...prev[existingTableInCell.id], row: currentTable.row, col: currentTable.col }
-      }));
-    } else {
-      setTableData((prev) => ({
-        ...prev,
-        [tableId]: { ...prev[tableId], row: targetRow, col: targetCol }
-      }));
-    }
-    setActiveTableId(null);
-  };
-
-  // Toggle Saletta Banquet Mode (14, 13, 12 united in vertical center line)
   const toggleSalettaMerge = () => {
     const nextState = !isSalettaMerged;
-    setIsSalettaMerged(nextState);
+    if (onToggleSalettaMergeProp) {
+      onToggleSalettaMergeProp(nextState);
+    } else {
+      setInternalSalettaMerged(nextState);
+    }
+    try {
+      localStorage.setItem('pupi_saletta_merged', nextState ? 'true' : 'false');
+    } catch {}
 
     if (nextState) {
-      // Automatically place 14, 13, 12 down col 2 in rows 5, 6, 7
-      setTableData((prev) => ({
-        ...prev,
-        '14': { ...prev['14'], row: 5, col: 2, pax: 2 },
-        '13': { ...prev['13'], row: 6, col: 2, pax: 2 },
-        '12': { ...prev['12'], row: 7, col: 2, pax: 3 } // total 7 pax
-      }));
       // Auto-select saletta tables
       if (onToggleTable) {
         if (!selectedTables.includes('14')) onToggleTable('14');
         if (!selectedTables.includes('13')) onToggleTable('13');
         if (!selectedTables.includes('12')) onToggleTable('12');
       }
-    } else {
-      // Reset Saletta tables to default separate layout
-      setTableData((prev) => ({
-        ...prev,
-        '14': { ...DEFAULT_TABLES['14'] },
-        '13': { ...DEFAULT_TABLES['13'] },
-        '12': { ...DEFAULT_TABLES['12'] }
-      }));
     }
   };
 
-  // Reset entire floor plan to default photo layout
-  const resetToDefaultLayout = () => {
-    setTableData(DEFAULT_TABLES);
-    setIsSalettaMerged(false);
+  // Move table to target cell within specified room
+  const moveTableToCell = (tableId, targetRow, targetCol, targetRoom = 'main') => {
+    const existingTableInCell = Object.values(tableData).find(
+      (t) => t.id !== tableId && (t.room || 'main') === targetRoom && t.row === targetRow && t.col === targetCol
+    );
+
+    const currentTable = tableData[tableId];
+
+    if (existingTableInCell) {
+      // Swap positions
+      setTableData((prev) => ({
+        ...prev,
+        [tableId]: { ...prev[tableId], row: targetRow, col: targetCol, room: targetRoom },
+        [existingTableInCell.id]: {
+          ...prev[existingTableInCell.id],
+          row: currentTable.row,
+          col: currentTable.col,
+          room: currentTable.room || 'main'
+        }
+      }));
+    } else {
+      setTableData((prev) => ({
+        ...prev,
+        [tableId]: { ...prev[tableId], row: targetRow, col: targetCol, room: targetRoom }
+      }));
+    }
     setActiveTableId(null);
   };
 
-  // Change chair orientation of active table
+  const resetToDefaultLayout = () => {
+    setTableData(DEFAULT_TABLES);
+    if (onToggleSalettaMergeProp) {
+      onToggleSalettaMergeProp(false);
+    } else {
+      setInternalSalettaMerged(false);
+    }
+    try {
+      localStorage.setItem('pupi_saletta_merged', 'false');
+      localStorage.removeItem('pupi_grid_tables_v4');
+    } catch {}
+    setActiveTableId(null);
+  };
+
   const setChairOrientation = (tableId, orientation) => {
     let chairs = [];
     if (orientation === 'vertical') chairs = ['top', 'bottom'];
@@ -162,7 +158,6 @@ export default function TablePlan({
     }));
   };
 
-  // Change pax count of active table
   const updatePax = (tableId, delta) => {
     setTableData((prev) => {
       const currentPax = prev[tableId]?.pax || 2;
@@ -174,35 +169,45 @@ export default function TablePlan({
     });
   };
 
-  // Grid dimensions
-  // Main Room: 7 columns (0..6), 5 rows (0..4)
-  // Transition / Saletta: rows 5, 6, 7
+  // Dimensions
   const MAIN_COLS = 7;
   const MAIN_ROWS = 5;
 
-  // Build grid occupancy map
-  const cellOccupancy = {};
+  const SALETTA_COLS = 3;
+  const SALETTA_ROWS = 2;
+
+  // Occupancy maps
+  const mainOccupancy = {};
+  const salettaOccupancy = {};
+
   Object.values(tableData).forEach((t) => {
-    cellOccupancy[`${t.row}_${t.col}`] = t;
+    if (t.room === 'saletta') {
+      salettaOccupancy[`${t.row}_${t.col}`] = t;
+    } else {
+      mainOccupancy[`${t.row}_${t.col}`] = t;
+    }
   });
 
   const activeTable = activeTableId ? tableData[activeTableId] : null;
 
+  // Check if Saletta has an assigned reservation
+  const salettaBooking =
+    tableAssignments['14'] || tableAssignments['13'] || tableAssignments['12'] || null;
+
   return (
     <div style={{ background: '#FFFFFF', border: '1px solid #D1D5DB', borderRadius: '0px', padding: '20px' }}>
-      {/* Header bar / Toolbar */}
+      {/* Top Toolbar */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
         <div>
           <h4 style={{ margin: '0 0 4px 0', fontSize: '17px', fontWeight: 700, color: '#333333' }}>
-            Planimetria Interattiva a Griglia
+            Planimetria Sala & Saletta a Griglia
           </h4>
           <p style={{ margin: 0, fontSize: '13px', color: 'var(--color-neutral-muted)' }}>
-            Clicca o trascina un tavolo nei quadratini vuoti per riordinare la sala come vuoi.
+            Griglia a quadratini per Sala e Saletta. Sposta i tavoli trascinandoli o cliccando sui quadratini liberi.
           </p>
         </div>
 
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-          {/* Quick Saletta Tavolata Toggle */}
           <button
             type="button"
             onClick={toggleSalettaMerge}
@@ -220,7 +225,6 @@ export default function TablePlan({
             {isSalettaMerged ? '✓ Saletta Tavolata Unita (7 pax)' : '✦ Unisci Saletta (14+13+12 - 7 pax)'}
           </button>
 
-          {/* Reset Layout */}
           <button
             type="button"
             onClick={resetToDefaultLayout}
@@ -240,7 +244,7 @@ export default function TablePlan({
         </div>
       </div>
 
-      {/* Active Table Quick Controller when a table is clicked */}
+      {/* Active Table Quick Controller */}
       {activeTable && (
         <div style={{
           display: 'flex',
@@ -254,7 +258,7 @@ export default function TablePlan({
           borderRadius: '0px'
         }}>
           <span style={{ fontWeight: 700, fontSize: '14px', color: '#333333' }}>
-            Tavolo {activeTable.label} selezionato:
+            Tavolo {activeTable.label} selezionato ({activeTable.room === 'saletta' ? 'Saletta' : 'Sala'}):
           </span>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -281,45 +285,21 @@ export default function TablePlan({
             <button
               type="button"
               onClick={() => setChairOrientation(activeTable.id, 'vertical')}
-              style={{
-                padding: '4px 8px',
-                border: '1px solid #D1D5DB',
-                background: '#FFFFFF',
-                borderRadius: '0px',
-                fontSize: '12px',
-                fontWeight: 600,
-                cursor: 'pointer'
-              }}
+              style={{ padding: '4px 8px', border: '1px solid #D1D5DB', background: '#FFFFFF', borderRadius: '0px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}
             >
               ↕ Alto/Basso
             </button>
             <button
               type="button"
               onClick={() => setChairOrientation(activeTable.id, 'horizontal')}
-              style={{
-                padding: '4px 8px',
-                border: '1px solid #D1D5DB',
-                background: '#FFFFFF',
-                borderRadius: '0px',
-                fontSize: '12px',
-                fontWeight: 600,
-                cursor: 'pointer'
-              }}
+              style={{ padding: '4px 8px', border: '1px solid #D1D5DB', background: '#FFFFFF', borderRadius: '0px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}
             >
               ↔ Sinistra/Destra
             </button>
             <button
               type="button"
               onClick={() => setChairOrientation(activeTable.id, 'all')}
-              style={{
-                padding: '4px 8px',
-                border: '1px solid #D1D5DB',
-                background: '#FFFFFF',
-                borderRadius: '0px',
-                fontSize: '12px',
-                fontWeight: 600,
-                cursor: 'pointer'
-              }}
+              style={{ padding: '4px 8px', border: '1px solid #D1D5DB', background: '#FFFFFF', borderRadius: '0px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}
             >
               ✛ 4 Lati
             </button>
@@ -332,30 +312,18 @@ export default function TablePlan({
           <button
             type="button"
             onClick={() => setActiveTableId(null)}
-            style={{
-              padding: '4px 8px',
-              border: 'none',
-              background: 'transparent',
-              fontSize: '14px',
-              cursor: 'pointer',
-              color: '#666'
-            }}
+            style={{ padding: '4px 8px', border: 'none', background: 'transparent', fontSize: '14px', cursor: 'pointer', color: '#666' }}
           >
             ✕
           </button>
         </div>
       )}
 
-      {/* Architectural Top Marker: FINESTRE SU VINDEGADE exactly as in user photo */}
-      <div style={{ maxWidth: '780px', margin: '0 auto 8px auto' }}>
+      {/* Architectural Top Marker: FINESTRE SU VINDEGADE */}
+      <div style={{ maxWidth: '800px', margin: '0 auto 8px auto' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '4px' }}>
           <div style={{ height: '3px', background: 'var(--color-accent-gold)', width: '60px' }}></div>
-          <div style={{
-            flex: 1,
-            height: '0px',
-            borderTop: '2px dashed var(--color-accent-gold)',
-            opacity: 0.8
-          }}></div>
+          <div style={{ flex: 1, height: '0px', borderTop: '2px dashed var(--color-accent-gold)', opacity: 0.8 }}></div>
           <div style={{ height: '3px', background: 'var(--color-accent-gold)', width: '60px' }}></div>
         </div>
         <div style={{
@@ -373,7 +341,7 @@ export default function TablePlan({
 
       {/* MAIN HALL GRID (7 Columns x 5 Rows) */}
       <div style={{
-        maxWidth: '780px',
+        maxWidth: '800px',
         margin: '0 auto',
         display: 'grid',
         gridTemplateColumns: 'repeat(7, 1fr)',
@@ -386,9 +354,10 @@ export default function TablePlan({
         {Array.from({ length: MAIN_ROWS }).map((_, r) =>
           Array.from({ length: MAIN_COLS }).map((_, c) => {
             const cellKey = `${r}_${c}`;
-            const table = cellOccupancy[cellKey];
+            const table = mainOccupancy[cellKey];
             const isSelected = table && selectedTables.includes(table.id);
             const isOccupied = table && occupiedTables.includes(table.id);
+            const assignment = table ? tableAssignments[table.id] : null;
             const isActiveForMove = activeTableId && !table;
 
             return (
@@ -396,19 +365,17 @@ export default function TablePlan({
                 key={cellKey}
                 onClick={() => {
                   if (activeTableId && !table) {
-                    moveTableToCell(activeTableId, r, c);
+                    moveTableToCell(activeTableId, r, c, 'main');
                   } else if (table) {
                     if (onToggleTable) onToggleTable(table.id);
                     setActiveTableId(table.id);
                   }
                 }}
-                onDragOver={(e) => {
-                  e.preventDefault();
-                }}
+                onDragOver={(e) => e.preventDefault()}
                 onDrop={(e) => {
                   e.preventDefault();
                   if (draggedTableId) {
-                    moveTableToCell(draggedTableId, r, c);
+                    moveTableToCell(draggedTableId, r, c, 'main');
                     setDraggedTableId(null);
                   }
                 }}
@@ -429,7 +396,6 @@ export default function TablePlan({
                 }}
                 title={isActiveForMove ? `Sposta tavolo qui (riga ${r + 1}, col ${c + 1})` : undefined}
               >
-                {/* Empty cell indicator dot when moving */}
                 {isActiveForMove && (
                   <div style={{
                     width: '10px',
@@ -439,59 +405,15 @@ export default function TablePlan({
                   }}></div>
                 )}
 
-                {/* Render Table in Cell */}
-                {table && (
-                  <div
-                    draggable
-                    onDragStart={(e) => {
-                      setDraggedTableId(table.id);
-                      setActiveTableId(table.id);
-                      e.dataTransfer.setData('text/plain', table.id);
-                    }}
-                    style={{
-                      width: '64px',
-                      height: '64px',
-                      position: 'relative',
-                      background: isSelected ? '#FFF5F6' : '#FFFFFF',
-                      border: isSelected
-                        ? '2px solid #333333'
-                        : activeTableId === table.id
-                        ? '2px solid #B5A642'
-                        : '1.2px solid #D1D5DB',
-                      borderRadius: '0px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      userSelect: 'none',
-                      boxShadow: isSelected ? '0 2px 6px rgba(0,0,0,0.1)' : 'none',
-                      transition: 'all 0.15s ease'
-                    }}
-                  >
-                    {/* Chair dots around table */}
-                    {renderChairs(table.chairs || ['top', 'bottom'], isSelected)}
-
-                    {/* Table Label (NO "T" prefix!) */}
-                    <div style={{
-                      fontSize: '17px',
-                      fontWeight: 800,
-                      color: isSelected ? '#1C1917' : '#333333',
-                      lineHeight: 1
-                    }}>
-                      {table.label}
-                    </div>
-
-                    {/* Pax */}
-                    <div style={{
-                      fontSize: '10px',
-                      color: 'var(--color-neutral-muted)',
-                      marginTop: '3px',
-                      fontWeight: 600
-                    }}>
-                      {table.pax} pax
-                    </div>
-                  </div>
-                )}
+                {table && renderTableBox({
+                  table,
+                  isSelected,
+                  isOccupied,
+                  assignment,
+                  activeTableId,
+                  setDraggedTableId,
+                  setActiveTableId
+                })}
               </div>
             );
           })
@@ -500,7 +422,7 @@ export default function TablePlan({
 
       {/* Corridor / Divider Label */}
       <div style={{
-        maxWidth: '780px',
+        maxWidth: '800px',
         margin: '12px auto',
         display: 'flex',
         alignItems: 'center',
@@ -512,13 +434,13 @@ export default function TablePlan({
         letterSpacing: '1px'
       }}>
         <span>Corridoio Bagno</span>
-        <span style={{ color: 'var(--color-accent-gold)' }}>↓ Accesso Saletta Privata</span>
+        <span style={{ color: 'var(--color-accent-gold)' }}>↓ Saletta Privata (Griglia a Quadratini)</span>
         <span>Cucina & Servizi</span>
       </div>
 
-      {/* SALETTA PRIVATA GRID SECTION */}
+      {/* SALETTA PRIVATA SECTION WITH REAL GRID */}
       <div style={{
-        maxWidth: '780px',
+        maxWidth: '800px',
         margin: '0 auto',
         display: 'grid',
         gridTemplateColumns: 'repeat(7, 1fr)',
@@ -528,7 +450,7 @@ export default function TablePlan({
         {/* Left spacer: WC corridor (cols 0..1) */}
         <div style={{
           gridColumn: 'span 2',
-          height: '210px',
+          minHeight: '190px',
           background: '#F3F4F6',
           border: '1px solid #E5E7EB',
           display: 'flex',
@@ -542,40 +464,42 @@ export default function TablePlan({
           Corridoio Bagno
         </div>
 
-        {/* Saletta Privata (Cols 2..4) */}
+        {/* Saletta Privata Grid Container (Cols 2..4) */}
         <div style={{
           gridColumn: 'span 3',
           border: '1.5px solid ' + (isSalettaMerged ? '#B5A642' : '#D1D5DB'),
           background: isSalettaMerged ? '#FFF5F6' : '#FAF6F4',
           position: 'relative',
-          padding: '12px'
+          padding: '10px',
+          display: 'flex',
+          flexDirection: 'column'
         }}>
           <div style={{
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            marginBottom: '10px',
+            marginBottom: '8px',
             borderBottom: '1px solid #E5E7EB',
-            paddingBottom: '6px'
+            paddingBottom: '4px'
           }}>
             <span style={{ fontSize: '12px', fontWeight: 800, color: '#333333', textTransform: 'uppercase' }}>
               Saletta Privata
             </span>
             <span style={{ fontSize: '11px', color: 'var(--color-accent-gold)', fontWeight: 700 }}>
-              {isSalettaMerged ? 'Tavolata Unita 7 pax' : '3 Tavoli Separati'}
+              {isSalettaMerged ? 'Tavolata Unita 7 pax' : 'Griglia Quadratini (14 sopra il 12)'}
             </span>
           </div>
 
-          {/* IF SALETTA MERGED: RENDER THE UNIFIED BANQUET (7 PAX: 3 left, 3 right, 1 capotavola) */}
+          {/* IF SALETTA MERGED: 7 PAX BANQUET (3 left, 3 right, 1 capotavola) */}
           {isSalettaMerged ? (
             <div style={{
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              padding: '10px 0'
+              flex: 1,
+              padding: '12px 0'
             }}>
-              {/* Banquet Table Box */}
               <div
                 onClick={() => {
                   ['14', '13', '12'].forEach((id) => {
@@ -583,15 +507,16 @@ export default function TablePlan({
                   });
                 }}
                 style={{
-                  width: '90px',
-                  height: '140px',
-                  background: '#FFFFFF',
-                  border: '2px solid #333333',
+                  width: '130px',
+                  minHeight: '130px',
+                  background: salettaBooking ? '#FFFDF5' : '#FFFFFF',
+                  border: salettaBooking ? '2px solid #B5A642' : '2px solid #333333',
                   position: 'relative',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
-                  justifyContent: 'space-around',
+                  justifyContent: 'center',
+                  padding: '8px 10px',
                   cursor: 'pointer',
                   boxShadow: '0 4px 12px rgba(0,0,0,0.08)'
                 }}
@@ -602,11 +527,11 @@ export default function TablePlan({
                   top: '-12px',
                   left: '50%',
                   transform: 'translateX(-50%)',
-                  width: '10px',
-                  height: '10px',
+                  width: '11px',
+                  height: '11px',
                   background: '#B5A642',
                   borderRadius: '50%',
-                  border: '1px solid #333'
+                  border: '1.5px solid #333'
                 }} title="Capotavola (1 posto)"></div>
 
                 {/* 3 Chairs Left */}
@@ -648,43 +573,130 @@ export default function TablePlan({
                 ))}
 
                 {/* Table Inner Content */}
-                <div style={{ fontSize: '11px', fontWeight: 800, color: 'var(--color-neutral-muted)' }}>
+                <div style={{ fontSize: '11px', fontWeight: 800, color: 'var(--color-neutral-muted)', marginBottom: '2px' }}>
                   14 + 13 + 12
                 </div>
-                <div style={{ fontSize: '15px', fontWeight: 900, color: '#333333' }}>
-                  Tavolata
-                </div>
-                <div style={{
-                  fontSize: '11px',
-                  fontWeight: 700,
-                  color: '#B5A642',
-                  background: '#FFF5F6',
-                  padding: '2px 6px',
-                  border: '1px solid #FDB4BF'
-                }}>
-                  7 pax
-                </div>
+
+                {salettaBooking ? (
+                  <div style={{ textAlign: 'center', width: '100%' }}>
+                    <div style={{ fontSize: '14px', fontWeight: 900, color: '#1C1917', lineHeight: 1.2 }}>
+                      {salettaBooking.customer_name}
+                    </div>
+                    <div style={{ fontSize: '11px', fontWeight: 700, color: '#B5A642', marginTop: '2px' }}>
+                      {salettaBooking.guests_count || 7} pax · {salettaBooking.booking_time}
+                    </div>
+                    <div style={{
+                      fontSize: '10px',
+                      fontWeight: 700,
+                      color: salettaBooking.status === 'seated' ? '#059669' : '#1C1917',
+                      background: salettaBooking.status === 'seated' ? '#ECFDF5' : '#FFF5F6',
+                      padding: '2px 6px',
+                      border: '1px solid #FDB4BF',
+                      marginTop: '4px',
+                      display: 'inline-block'
+                    }}>
+                      {salettaBooking.status === 'seated' ? '✓ Al Tavolo (Siede)' : 'Accettata'}
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '14px', fontWeight: 900, color: '#333333' }}>
+                      Tavolata Saletta
+                    </div>
+                    <div style={{
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      color: '#B5A642',
+                      background: '#FFF5F6',
+                      padding: '2px 6px',
+                      border: '1px solid #FDB4BF',
+                      marginTop: '4px',
+                      display: 'inline-block'
+                    }}>
+                      7 pax
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           ) : (
-            /* STANDARD SALETTA: Individual Tables 14, 12, 13 */
+            /* SALETTA GRID OF QUADRATINI (3 Cols x 2 Rows: 14 is Row 0 Col 0, 12 is Row 1 Col 0, 13 is Row 1 Col 1) */
             <div style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(2, 1fr)',
-              gap: '12px',
-              padding: '6px'
+              gridTemplateColumns: `repeat(${SALETTA_COLS}, 1fr)`,
+              gridTemplateRows: `repeat(${SALETTA_ROWS}, 86px)`,
+              gap: '0px',
+              border: '1px solid #D1D5DB',
+              background: '#FFFFFF',
+              boxSizing: 'border-box'
             }}>
-              {/* Table 14 (Upper center/left) */}
-              <div style={{ gridColumn: 'span 2', display: 'flex', justifyContent: 'center' }}>
-                {renderSingleTableCard(tableData['14'], selectedTables, occupiedTables, onToggleTable, setActiveTableId, activeTableId)}
-              </div>
-              {/* Tables 12 and 13 (Lower side by side) */}
-              <div style={{ display: 'flex', justifyContent: 'center' }}>
-                {renderSingleTableCard(tableData['12'], selectedTables, occupiedTables, onToggleTable, setActiveTableId, activeTableId)}
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'center' }}>
-                {renderSingleTableCard(tableData['13'], selectedTables, occupiedTables, onToggleTable, setActiveTableId, activeTableId)}
-              </div>
+              {Array.from({ length: SALETTA_ROWS }).map((_, r) =>
+                Array.from({ length: SALETTA_COLS }).map((_, c) => {
+                  const cellKey = `${r}_${c}`;
+                  const table = salettaOccupancy[cellKey];
+                  const isSelected = table && selectedTables.includes(table.id);
+                  const isOccupied = table && occupiedTables.includes(table.id);
+                  const assignment = table ? tableAssignments[table.id] : null;
+                  const isActiveForMove = activeTableId && !table;
+
+                  return (
+                    <div
+                      key={cellKey}
+                      onClick={() => {
+                        if (activeTableId && !table) {
+                          moveTableToCell(activeTableId, r, c, 'saletta');
+                        } else if (table) {
+                          if (onToggleTable) onToggleTable(table.id);
+                          setActiveTableId(table.id);
+                        }
+                      }}
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        if (draggedTableId) {
+                          moveTableToCell(draggedTableId, r, c, 'saletta');
+                          setDraggedTableId(null);
+                        }
+                      }}
+                      style={{
+                        position: 'relative',
+                        borderRight: c < SALETTA_COLS - 1 ? '1px solid #E5E7EB' : 'none',
+                        borderBottom: r < SALETTA_ROWS - 1 ? '1px solid #E5E7EB' : 'none',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        background: isActiveForMove
+                          ? 'rgba(253, 180, 191, 0.12)'
+                          : table
+                          ? '#FFFFFF'
+                          : '#FAFAFA',
+                        cursor: isActiveForMove ? 'pointer' : table ? 'grab' : 'default',
+                        transition: 'background 0.15s ease'
+                      }}
+                      title={isActiveForMove ? `Sposta tavolo qui in Saletta (riga ${r + 1}, col ${c + 1})` : undefined}
+                    >
+                      {isActiveForMove && (
+                        <div style={{
+                          width: '10px',
+                          height: '10px',
+                          border: '1.5px dashed #B5A642',
+                          borderRadius: '50%'
+                        }}></div>
+                      )}
+
+                      {table && renderTableBox({
+                        table,
+                        isSelected,
+                        isOccupied,
+                        assignment,
+                        activeTableId,
+                        setDraggedTableId,
+                        setActiveTableId
+                      })}
+                    </div>
+                  );
+                })
+              )}
             </div>
           )}
         </div>
@@ -692,7 +704,7 @@ export default function TablePlan({
         {/* Right spacer: Kitchen & Bar (cols 5..6) */}
         <div style={{
           gridColumn: 'span 2',
-          height: '210px',
+          minHeight: '190px',
           background: '#F3F4F6',
           border: '1px solid #E5E7EB',
           borderLeft: '2px solid #D1D5DB',
@@ -711,7 +723,7 @@ export default function TablePlan({
 
       {/* Legend */}
       <div style={{
-        maxWidth: '780px',
+        maxWidth: '800px',
         margin: '16px auto 0 auto',
         display: 'flex',
         justifyContent: 'center',
@@ -725,12 +737,12 @@ export default function TablePlan({
           Tavolo Libero
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ width: '12px', height: '12px', background: '#FFF5F6', border: '2px solid #333333' }}></span>
-          Selezionato
+          <span style={{ width: '12px', height: '12px', background: '#FFFDF5', border: '1.5px solid #B5A642' }}></span>
+          Assegnato / Riservato (Nome Cliente)
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ width: '8px', height: '8px', background: '#B5A642', borderRadius: '50%' }}></span>
-          Seduta (Sedia)
+          <span style={{ width: '12px', height: '12px', background: '#FFF5F6', border: '2px solid #333333' }}></span>
+          Selezionato
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <span style={{ width: '12px', height: '12px', border: '1px dashed #B5A642' }}></span>
@@ -741,9 +753,110 @@ export default function TablePlan({
   );
 }
 
-// Helper to render circular chair dots around a square table
-function renderChairs(activeSides = ['top', 'bottom'], isSelected = false) {
-  const dotColor = isSelected ? '#333333' : '#9CA3AF';
+// Reusable Table Box Renderer showing customer name when assigned
+function renderTableBox({
+  table,
+  isSelected,
+  isOccupied,
+  assignment,
+  activeTableId,
+  setDraggedTableId,
+  setActiveTableId
+}) {
+  const isSeated = assignment && assignment.status === 'seated';
+
+  return (
+    <div
+      draggable
+      onDragStart={(e) => {
+        setDraggedTableId(table.id);
+        setActiveTableId(table.id);
+        e.dataTransfer.setData('text/plain', table.id);
+      }}
+      style={{
+        width: '66px',
+        height: '66px',
+        position: 'relative',
+        background: isSelected
+          ? '#FFF5F6'
+          : isSeated
+          ? '#ECFDF5'
+          : assignment
+          ? '#FFFDF5'
+          : '#FFFFFF',
+        border: isSelected
+          ? '2px solid #333333'
+          : activeTableId === table.id
+          ? '2px solid #B5A642'
+          : isSeated
+          ? '2px solid #059669'
+          : assignment
+          ? '1.8px solid #B5A642'
+          : '1.2px solid #D1D5DB',
+        borderRadius: '0px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        userSelect: 'none',
+        boxShadow: isSelected ? '0 2px 6px rgba(0,0,0,0.1)' : 'none',
+        transition: 'all 0.15s ease'
+      }}
+    >
+      {/* Chairs around table */}
+      {renderChairs(table.chairs || ['top', 'bottom'], isSelected || !!assignment)}
+
+      {assignment ? (
+        <div style={{ textAlign: 'center', width: '100%', padding: '0 2px', overflow: 'hidden' }}>
+          <div style={{ fontSize: '13px', fontWeight: 900, color: '#1C1917', lineHeight: 1 }}>
+            {table.label}
+          </div>
+          <div
+            style={{
+              fontSize: '10px',
+              fontWeight: 800,
+              color: isSeated ? '#059669' : '#B5A642',
+              marginTop: '2px',
+              textOverflow: 'ellipsis',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              maxWidth: '60px'
+            }}
+            title={assignment.customer_name}
+          >
+            {assignment.customer_name}
+          </div>
+          <div style={{ fontSize: '9px', color: '#666', marginTop: '1px' }}>
+            {assignment.guests_count || table.pax}p · {assignment.booking_time}
+          </div>
+        </div>
+      ) : (
+        <>
+          <div style={{
+            fontSize: '17px',
+            fontWeight: 800,
+            color: isSelected ? '#1C1917' : '#333333',
+            lineHeight: 1
+          }}>
+            {table.label}
+          </div>
+          <div style={{
+            fontSize: '10px',
+            color: 'var(--color-neutral-muted)',
+            marginTop: '3px',
+            fontWeight: 600
+          }}>
+            {table.pax} pax
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// Chair dots helper
+function renderChairs(activeSides = ['top', 'bottom'], isHighlighted = false) {
+  const dotColor = isHighlighted ? '#B5A642' : '#9CA3AF';
   const size = 6;
   const offset = -7;
 
@@ -774,46 +887,5 @@ function renderChairs(activeSides = ['top', 'bottom'], isSelected = false) {
         </>
       )}
     </>
-  );
-}
-
-// Helper for rendering standard cards in Saletta
-function renderSingleTableCard(table, selectedTables, occupiedTables, onToggleTable, setActiveTableId, activeTableId) {
-  if (!table) return null;
-  const isSelected = selectedTables.includes(table.id);
-
-  return (
-    <div
-      onClick={() => {
-        if (onToggleTable) onToggleTable(table.id);
-        setActiveTableId(table.id);
-      }}
-      style={{
-        width: '64px',
-        height: '64px',
-        position: 'relative',
-        background: isSelected ? '#FFF5F6' : '#FFFFFF',
-        border: isSelected
-          ? '2px solid #333333'
-          : activeTableId === table.id
-          ? '2px solid #B5A642'
-          : '1.2px solid #D1D5DB',
-        borderRadius: '0px',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        cursor: 'pointer',
-        userSelect: 'none'
-      }}
-    >
-      {renderChairs(table.chairs || ['top', 'bottom'], isSelected)}
-      <div style={{ fontSize: '17px', fontWeight: 800, color: isSelected ? '#1C1917' : '#333333' }}>
-        {table.label}
-      </div>
-      <div style={{ fontSize: '10px', color: 'var(--color-neutral-muted)', marginTop: '2px', fontWeight: 600 }}>
-        {table.pax} pax
-      </div>
-    </div>
   );
 }

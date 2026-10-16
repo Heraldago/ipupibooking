@@ -80,6 +80,28 @@ const SEED_RESERVATIONS = [
 
 const ALL_TABLE_IDS = ['14', '13', '12', '10', '11', '9', '8', '7', '6', '5', '4', '3', '2'];
 
+// Restaurant natural pairings and single options for 1-click game-like assignment
+export const RESTAURANT_COMBOS = [
+  { id: 'pair-10-11', tables: ['10', '11'], label: 'Tavolo 10 + 11', zone: 'Finestra Vindegade', pax: 4 },
+  { id: 'pair-7-8', tables: ['7', '8'], label: 'Tavolo 7 + 8', zone: 'Parete Sinistra', pax: 4 },
+  { id: 'pair-5-6', tables: ['5', '6'], label: 'Tavolo 5 + 6', zone: 'Centro Sala', pax: 4 },
+  { id: 'pair-3-4', tables: ['3', '4'], label: 'Tavolo 3 + 4', zone: 'Parete Destra', pax: 4 },
+  { id: 'saletta-banquet', tables: ['14', '13', '12'], label: 'Saletta Privata (14+13+12)', zone: 'Saletta', pax: 7, isSaletta: true }
+];
+
+export const SINGLE_TABLE_OPTIONS = [
+  { id: 'opt-9', tables: ['9'], label: 'Tavolo 9', zone: 'Finestra Sinistra', pax: 2 },
+  { id: 'opt-10', tables: ['10'], label: 'Tavolo 10', zone: 'Finestra Centro', pax: 2 },
+  { id: 'opt-11', tables: ['11'], label: 'Tavolo 11', zone: 'Finestra Centro', pax: 2 },
+  { id: 'opt-2', tables: ['2'], label: 'Tavolo 2', zone: 'Finestra Destra', pax: 2 },
+  { id: 'opt-7', tables: ['7'], label: 'Tavolo 7', zone: 'Parete Sinistra', pax: 2 },
+  { id: 'opt-5', tables: ['5'], label: 'Tavolo 5', zone: 'Centro Sala', pax: 2 },
+  { id: 'opt-3', tables: ['3'], label: 'Tavolo 3', zone: 'Parete Destra', pax: 2 },
+  { id: 'opt-8', tables: ['8'], label: 'Tavolo 8', zone: 'Fondo Sinistra', pax: 2 },
+  { id: 'opt-6', tables: ['6'], label: 'Tavolo 6', zone: 'Fondo Centro', pax: 2 },
+  { id: 'opt-4', tables: ['4'], label: 'Tavolo 4', zone: 'Fondo Destra', pax: 2 }
+];
+
 // Italian Date Formatting Helper
 function formatDateItalian(isoStr) {
   try {
@@ -240,19 +262,85 @@ export default function AdminPage({ onNavigateToBooking }) {
     );
   };
 
-  // Start assigning tables for a reservation
-  const startAssigningReservation = (res) => {
-    setActiveAssigningRes(res);
-    const existing = res.assigned_tables || [];
-    setStaffSelectedTables(existing);
+  // Helper: compute available options for a reservation
+  const getAvailableOptionsForRes = (res) => {
+    if (!res) return [];
+    const guests = parseInt(res.guests_count, 10) || 2;
 
-    // If 6-8 pax and no tables yet assigned, auto-suggest Saletta 14+13+12
-    if (res.guests_count >= 6 && existing.length === 0) {
-      setStaffSelectedTables(['14', '13', '12']);
+    if (guests <= 2) {
+      return SINGLE_TABLE_OPTIONS.filter((opt) => {
+        const tid = opt.tables[0];
+        const isOccupiedByOther = tableAssignments[tid] && tableAssignments[tid].id !== res.id;
+        return !isOccupiedByOther;
+      });
+    }
+
+    if (guests <= 4) {
+      return RESTAURANT_COMBOS.filter((c) => c.pax === 4).filter((c) => {
+        return c.tables.every(
+          (tid) => !tableAssignments[tid] || tableAssignments[tid].id === res.id
+        );
+      });
+    }
+
+    // 5 to 7 pax: Saletta banquet
+    const salettaFree = ['14', '13', '12'].every(
+      (tid) => !tableAssignments[tid] || tableAssignments[tid].id === res.id
+    );
+    if (salettaFree) {
+      return RESTAURANT_COMBOS.filter((c) => c.isSaletta);
+    }
+    return [];
+  };
+
+  // 1-Click Apply Combo
+  const applyCombo = (combo) => {
+    setStaffSelectedTables(combo.tables);
+    if (combo.isSaletta) {
       setIsSalettaMerged(true);
       try {
         localStorage.setItem('pupi_saletta_merged', 'true');
       } catch {}
+    }
+  };
+
+  // Start assigning tables for a reservation (Game-like initiation)
+  const startAssigningReservation = (res) => {
+    setActiveAssigningRes(res);
+    const existing = res.assigned_tables || [];
+    const guests = parseInt(res.guests_count, 10) || 2;
+
+    if (existing.length > 0) {
+      setStaffSelectedTables(existing);
+    } else {
+      // Game-like smart auto-proposal:
+      if (guests >= 5) {
+        setStaffSelectedTables(['14', '13', '12']);
+        setIsSalettaMerged(true);
+        try {
+          localStorage.setItem('pupi_saletta_merged', 'true');
+        } catch {}
+      } else if (guests <= 4 && guests > 2) {
+        // Pick first completely free 4-pax pair
+        const freePair = RESTAURANT_COMBOS.find(
+          (c) => c.pax === 4 && c.tables.every((tid) => !tableAssignments[tid] || tableAssignments[tid].id === res.id)
+        );
+        if (freePair) {
+          setStaffSelectedTables(freePair.tables);
+        } else {
+          setStaffSelectedTables([]);
+        }
+      } else {
+        // 1-2 pax: pick first free single table
+        const freeSingle = SINGLE_TABLE_OPTIONS.find(
+          (opt) => !tableAssignments[opt.tables[0]] || tableAssignments[opt.tables[0]].id === res.id
+        );
+        if (freeSingle) {
+          setStaffSelectedTables(freeSingle.tables);
+        } else {
+          setStaffSelectedTables([]);
+        }
+      }
     }
 
     // Smoothly scroll down to the floor plan for easy interaction
@@ -262,13 +350,75 @@ export default function AdminPage({ onNavigateToBooking }) {
     }
   };
 
-  // Toggle table selection for the active reservation
+  // Toggle table selection with STRICT capacity check and smart pair coupling
   const toggleStaffTable = (id) => {
+    if (!activeAssigningRes) return;
+    const guests = parseInt(activeAssigningRes.guests_count, 10) || 2;
+
+    // Deselect if already selected
     if (staffSelectedTables.includes(id)) {
       setStaffSelectedTables(staffSelectedTables.filter((t) => t !== id));
-    } else {
-      setStaffSelectedTables([...staffSelectedTables, id]);
+      return;
     }
+
+    // Block if occupied by another guest
+    const isOccupiedByOther = tableAssignments[id] && tableAssignments[id].id !== activeAssigningRes.id;
+    if (isOccupiedByOther) {
+      alert(`Il Tavolo ${id} è già occupato da ${tableAssignments[id].customer_name}! Scegli un tavolo verde libero.`);
+      return;
+    }
+
+    // 1-2 Pax: Exactly 1 table (2 seats). Tapping another table replaces selection
+    if (guests <= 2) {
+      setStaffSelectedTables([id]);
+      return;
+    }
+
+    // 3-4 Pax: Maximum 2 tables (4 seats)
+    if (guests <= 4) {
+      // If 0 tables chosen: smart-couple with adjacent pair if free
+      if (staffSelectedTables.length === 0) {
+        const pair = RESTAURANT_COMBOS.find((c) => c.pax === 4 && c.tables.includes(id));
+        if (pair) {
+          const bothFree = pair.tables.every(
+            (tid) => !tableAssignments[tid] || tableAssignments[tid].id === activeAssigningRes.id
+          );
+          if (bothFree) {
+            setStaffSelectedTables(pair.tables);
+            return;
+          }
+        }
+        setStaffSelectedTables([id]);
+        return;
+      }
+
+      // If 1 table already chosen: add this 2nd table (total 2 tables = 4 seats)
+      if (staffSelectedTables.length === 1) {
+        setStaffSelectedTables([...staffSelectedTables, id]);
+        return;
+      }
+
+      // If already 2 tables chosen (4 seats): PREVENT adding 3rd or 4th table!
+      alert(`Hai già selezionato 2 tavoli (4 posti). Per cambiare tavolo, tocca un tavolo selezionato per toglierlo oppure clicca su una delle opzioni rapide in alto.`);
+      return;
+    }
+
+    // 5+ Pax: Saletta tables (14, 13, 12)
+    if (['14', '13', '12'].includes(id)) {
+      setStaffSelectedTables(['14', '13', '12']);
+      setIsSalettaMerged(true);
+      try {
+        localStorage.setItem('pupi_saletta_merged', 'true');
+      } catch {}
+      return;
+    }
+
+    if (staffSelectedTables.length >= 3) {
+      alert(`Hai già raggiunto la capienza massima per questa prenotazione (${guests} persone).`);
+      return;
+    }
+
+    setStaffSelectedTables([...staffSelectedTables, id]);
   };
 
   // Quick 1-tap Saletta assignment (14, 13, 12)
@@ -298,7 +448,7 @@ export default function AdminPage({ onNavigateToBooking }) {
   const confirmAssignment = () => {
     if (!activeAssigningRes) return;
     if (staffSelectedTables.length === 0) {
-      alert('Seleziona almeno un tavolo (cliccando sui pulsanti o sulla mappa) per confermare.');
+      alert('Seleziona almeno un tavolo (cliccando sulla mappa o su un\'opzione rapida) per confermare.');
       return;
     }
 
@@ -310,16 +460,16 @@ export default function AdminPage({ onNavigateToBooking }) {
       )
     );
 
-    // If Saletta 14, 13, 12 were assigned and guests >= 6, keep merged
+    // If Saletta 14, 13, 12 were assigned and guests >= 5, keep merged
     const hasSaletta = ['14', '13', '12'].every((tid) => staffSelectedTables.includes(tid));
-    if (hasSaletta && activeAssigningRes.guests_count >= 6) {
+    if (hasSaletta && activeAssigningRes.guests_count >= 5) {
       setIsSalettaMerged(true);
       try {
         localStorage.setItem('pupi_saletta_merged', 'true');
       } catch {}
     }
 
-    alert(`✓ Tavoli [${staffSelectedTables.join(', ')}] assegnati a ${activeAssigningRes.customer_name}.`);
+    alert(`✓ Tavolo/i [${staffSelectedTables.join(', ')}] assegnati con successo a ${activeAssigningRes.customer_name}!`);
     setActiveAssigningRes(null);
     setStaffSelectedTables([]);
   };
@@ -700,181 +850,128 @@ export default function AdminPage({ onNavigateToBooking }) {
             borderRadius: '0px'
           }}
         >
-          {/* ACTIVE ASSIGNMENT HERO BANNER */}
+          {/* ACTIVE ASSIGNMENT GAME-LIKE CONTROL PANEL */}
           {activeAssigningRes && (
-            <div className="assignment-hero-card">
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'flex-start',
-                flexWrap: 'wrap',
-                gap: '12px',
-                marginBottom: '14px',
-                borderBottom: '1px solid #FDE047',
-                paddingBottom: '12px'
-              }}>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
-                    <span style={{
-                      background: '#1C1917',
-                      color: '#FFF',
-                      padding: '3px 8px',
-                      fontSize: '11px',
-                      fontWeight: 800,
-                      textTransform: 'uppercase',
-                      letterSpacing: '1px'
-                    }}>
-                      Assegnazione in corso
-                    </span>
-                    <strong style={{ fontSize: '18px', color: '#1C1917' }}>
-                      {activeAssigningRes.customer_name}
-                    </strong>
-                    <span style={{
-                      background: '#B5A642',
-                      color: '#FFF',
-                      padding: '2px 8px',
-                      fontSize: '12px',
-                      fontWeight: 700
-                    }}>
-                      {activeAssigningRes.guests_count} persone
-                    </span>
-                    <span style={{ fontSize: '13px', color: 'var(--color-neutral-muted)' }}>
-                      · ore {activeAssigningRes.booking_time}
-                    </span>
+            <div className="game-assignment-panel">
+              {/* Header with guest card & progress meter */}
+              <div className="game-assignment-header">
+                <div className="game-guest-badge">
+                  <div className="game-guest-avatar">
+                    {Array.from({ length: Math.min(activeAssigningRes.guests_count, 8) }).map((_, i) => (
+                      <span key={i} role="img" aria-label="ospite">👤</span>
+                    ))}
                   </div>
-
-                  <div style={{ fontSize: '13px', color: '#444' }}>
-                    Posti selezionati:{' '}
-                    <strong style={{
-                      color: calculateStaffCapacity() >= activeAssigningRes.guests_count ? '#059669' : '#B91C1C',
-                      fontSize: '14px'
-                    }}>
-                      {calculateStaffCapacity()} su {activeAssigningRes.guests_count} richiesti
-                    </strong>
-                    {calculateStaffCapacity() >= activeAssigningRes.guests_count && ' ✓'}
-                    {' · '}Tavoli scelti:{' '}
-                    <strong style={{ color: '#1C1917' }}>
-                      {staffSelectedTables.length > 0 ? staffSelectedTables.join(', ') : 'Nessuno'}
-                    </strong>
+                  <div>
+                    <div className="game-guest-title">
+                      Stai sistemando: <strong>{activeAssigningRes.customer_name}</strong>
+                    </div>
+                    <div className="game-guest-subtitle">
+                      <span className="badge-pax">{activeAssigningRes.guests_count} persone</span>
+                      <span>· ore {activeAssigningRes.booking_time}</span>
+                      <span>· {formatDateItalian(activeAssigningRes.booking_date).dayName}</span>
+                      {activeAssigningRes.notes && (
+                        <span style={{ color: '#854D0E', background: '#FEF9C3', padding: '1px 6px', fontSize: '11px' }}>
+                          Nota: {activeAssigningRes.notes}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                  <button
-                    type="button"
-                    onClick={confirmAssignment}
-                    style={{
-                      padding: '10px 18px',
-                      background: '#1C1917',
-                      color: '#FFFFFF',
-                      border: 'none',
-                      fontSize: '13px',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '6px'
-                    }}
-                  >
-                    <Check size={16} color="#B5A642" />
-                    <span>✓ Salva Assegnazione ({staffSelectedTables.length} tavoli)</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setActiveAssigningRes(null);
-                      setStaffSelectedTables([]);
-                    }}
-                    style={{
-                      padding: '10px 14px',
-                      background: '#FFFFFF',
-                      border: '1px solid #D1D5DB',
-                      color: '#666',
-                      fontSize: '13px',
-                      fontWeight: 600,
-                      cursor: 'pointer'
-                    }}
-                  >
-                    Annulla
-                  </button>
+                {/* Target status indicator */}
+                <div className="game-capacity-meter">
+                  {staffSelectedTables.length === 0 ? (
+                    <div style={{ color: '#D97706', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span>🟡 Nessun tavolo scelto (servono {activeAssigningRes.guests_count} posti)</span>
+                    </div>
+                  ) : calculateStaffCapacity() >= activeAssigningRes.guests_count ? (
+                    <div style={{ color: '#059669', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Check size={18} />
+                      <span>Ottimo! {calculateStaffCapacity()} posti coperti (Tavoli: {staffSelectedTables.join(' + ')})</span>
+                    </div>
+                  ) : (
+                    <div style={{ color: '#D97706', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span>🟡 {calculateStaffCapacity()} su {activeAssigningRes.guests_count} posti coperti - scegli il secondo tavolo</span>
+                    </div>
+                  )}
                 </div>
               </div>
 
-              {/* Table Quick-Select Pills Bar */}
-              <div>
-                <div style={{
-                  fontSize: '12px',
-                  fontWeight: 700,
-                  color: '#1C1917',
-                  marginBottom: '8px',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.5px'
-                }}>
-                  Tavoli disponibili (clicca per selezionare o togliere):
+              {/* 1-TAP QUICK SELECTION CARDS (Logica Gioco) */}
+              <div className="game-quick-options">
+                <div className="game-options-title">
+                  ⚡ 1 CLICK: SCEGLI DOVE FARLI SEDERE (PER {activeAssigningRes.guests_count} PERSONE):
                 </div>
 
-                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
-                  {ALL_TABLE_IDS.map((tid) => {
-                    const isSel = staffSelectedTables.includes(tid);
-                    const occupiedByOther = tableAssignments[tid] && tableAssignments[tid].id !== activeAssigningRes.id;
-                    const isSalettaTable = ['14', '13', '12'].includes(tid);
-
+                <div className="game-cards-row">
+                  {getAvailableOptionsForRes(activeAssigningRes).map((combo) => {
+                    const isSelected =
+                      combo.tables.every((t) => staffSelectedTables.includes(t)) &&
+                      staffSelectedTables.length === combo.tables.length;
                     return (
                       <button
-                        key={tid}
+                        key={combo.id}
                         type="button"
-                        onClick={() => toggleStaffTable(tid)}
-                        className={`table-pill-button ${isSel ? 'selected' : ''} ${occupiedByOther ? 'occupied' : ''}`}
-                        title={occupiedByOther ? `Occupato da ${tableAssignments[tid].customer_name}` : `Tavolo ${tid}`}
+                        onClick={() => applyCombo(combo)}
+                        className={`game-combo-card ${isSelected ? 'active' : ''}`}
                       >
-                        {isSel ? `✓ Tavolo ${tid}` : isSalettaTable ? `Tavolo ${tid} (Saletta)` : `Tavolo ${tid}`}
-                        {occupiedByOther && ` [${tableAssignments[tid].customer_name.split(' ')[0]}]`}
+                        <div className="combo-card-tag">{combo.zone}</div>
+                        <div className="combo-card-name">🍽️ {combo.label}</div>
+                        <div className="combo-card-pax">
+                          {combo.pax} posti {isSelected ? '✓ SELEZIONATO' : ''}
+                        </div>
                       </button>
                     );
                   })}
-
-                  {activeAssigningRes.guests_count >= 6 && (
-                    <button
-                      type="button"
-                      onClick={assignSalettaForActive}
-                      style={{
-                        padding: '8px 14px',
-                        background: '#FFF5F6',
-                        border: '1.5px solid #B5A642',
-                        color: '#1C1917',
-                        fontSize: '12px',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                        borderRadius: '0px'
-                      }}
-                    >
-                      ✦ Unisci Saletta 14+13+12 (7 pax)
-                    </button>
-                  )}
-
-                  {staffSelectedTables.length > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => setStaffSelectedTables([])}
-                      style={{
-                        padding: '8px 12px',
-                        background: 'transparent',
-                        border: '1px dashed #DC2626',
-                        color: '#DC2626',
-                        fontSize: '12px',
-                        fontWeight: 700,
-                        cursor: 'pointer'
-                      }}
-                    >
-                      ✕ Svuota
-                    </button>
+                  {getAvailableOptionsForRes(activeAssigningRes).length === 0 && (
+                    <div style={{ fontSize: '13px', color: '#666', fontStyle: 'italic', padding: '6px 0' }}>
+                      Nessuna combinazione rapida predefinita libera. Clicca sui tavoli verdi direttamente sulla piantina.
+                    </div>
                   )}
                 </div>
+              </div>
 
-                <div style={{ marginTop: '8px', fontSize: '12px', color: 'var(--color-neutral-muted)' }}>
-                  💡 Puoi anche cliccare direttamente sui tavoli nella mappa sottostante per selezionarli o deselezionarli.
-                </div>
+              {/* MAP INSTRUCTION */}
+              <div className="game-map-hint">
+                📍 <em>Oppure tocca direttamente i <strong>tavoli verdi illuminati</strong> sulla planimetria sottostante:</em>
+              </div>
+
+              {/* ACTION CONFIRMATION BAR */}
+              <div className="game-actions-bar">
+                <button
+                  type="button"
+                  onClick={confirmAssignment}
+                  disabled={calculateStaffCapacity() < activeAssigningRes.guests_count}
+                  className="game-btn-confirm"
+                >
+                  <Check size={20} />
+                  <span>
+                    {calculateStaffCapacity() >= activeAssigningRes.guests_count
+                      ? `CONFERMA E ASSEGNA TAVOLO ${staffSelectedTables.join(' + ')}`
+                      : `Seleziona i tavoli per coprire ${activeAssigningRes.guests_count} persone`}
+                  </span>
+                </button>
+
+                {staffSelectedTables.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setStaffSelectedTables([])}
+                    className="game-btn-clear"
+                  >
+                    Svuota selezione
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveAssigningRes(null);
+                    setStaffSelectedTables([]);
+                  }}
+                  className="game-btn-cancel"
+                >
+                  Annulla
+                </button>
               </div>
             </div>
           )}
@@ -886,6 +983,8 @@ export default function AdminPage({ onNavigateToBooking }) {
             guests={calculateStaffCapacity()}
             onConfigChange={setTableConfigs}
             tableAssignments={tableAssignments}
+            activeAssigningRes={activeAssigningRes}
+            onConfirmAssignment={confirmAssignment}
             isSalettaMerged={isSalettaMerged}
             onToggleSalettaMerge={setIsSalettaMerged}
           />

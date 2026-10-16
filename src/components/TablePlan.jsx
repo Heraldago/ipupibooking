@@ -372,6 +372,12 @@ export default function TablePlan({
               <div
                 key={cellKey}
                 onClick={() => {
+                  if (activeAssigningRes) {
+                    if (table && onToggleTable) {
+                      onToggleTable(table.id);
+                    }
+                    return;
+                  }
                   if (activeTableId && !table) {
                     moveTableToCell(activeTableId, r, c, 'main');
                   } else if (table) {
@@ -381,6 +387,7 @@ export default function TablePlan({
                 }}
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={(e) => {
+                  if (activeAssigningRes) return;
                   e.preventDefault();
                   if (draggedTableId) {
                     moveTableToCell(draggedTableId, r, c, 'main');
@@ -399,7 +406,7 @@ export default function TablePlan({
                     : table
                     ? '#FFFFFF'
                     : 'transparent',
-                  cursor: isActiveForMove ? 'pointer' : table ? 'grab' : 'default',
+                  cursor: activeAssigningRes && table ? 'pointer' : isActiveForMove ? 'pointer' : table ? 'grab' : 'default',
                   transition: 'background 0.15s ease'
                 }}
                 title={isActiveForMove ? `Sposta tavolo qui (riga ${r + 1}, col ${c + 1})` : undefined}
@@ -420,7 +427,8 @@ export default function TablePlan({
                   assignment,
                   activeTableId,
                   setDraggedTableId,
-                  setActiveTableId
+                  setActiveTableId,
+                  activeAssigningRes
                 })}
               </div>
             );
@@ -508,124 +516,202 @@ export default function TablePlan({
               flex: 1,
               padding: '12px 0'
             }}>
-              <div
-                onClick={() => {
-                  ['14', '13', '12'].forEach((id) => {
-                    if (onToggleTable) onToggleTable(id);
-                  });
-                }}
-                style={{
-                  width: '130px',
-                  minHeight: '130px',
-                  background: salettaBooking ? '#FFFDF5' : '#FFFFFF',
-                  border: salettaBooking ? '2px solid #B5A642' : '2px solid #333333',
-                  position: 'relative',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: '8px 10px',
-                  cursor: 'pointer',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.08)'
-                }}
-              >
-                {/* 1 Capotavola Top */}
-                <div style={{
-                  position: 'absolute',
-                  top: '-12px',
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  width: '11px',
-                  height: '11px',
-                  background: '#B5A642',
-                  borderRadius: '50%',
-                  border: '1.5px solid #333'
-                }} title="Capotavola (1 posto)"></div>
+              {(() => {
+                const isSalettaSelected = ['14', '13', '12'].every((id) => selectedTables.includes(id));
+                const isSalettaOccupied = !!salettaBooking || ['14', '13', '12'].some((id) => occupiedTables.includes(id));
+                const isSalettaAvailableForRes = activeAssigningRes && !isSalettaOccupied;
 
-                {/* 3 Chairs Left */}
-                {[0.2, 0.5, 0.8].map((fraction, i) => (
+                return (
                   <div
-                    key={'l-' + i}
-                    style={{
-                      position: 'absolute',
-                      left: '-12px',
-                      top: `${fraction * 100}%`,
-                      transform: 'translateY(-50%)',
-                      width: '10px',
-                      height: '10px',
-                      background: '#B5A642',
-                      borderRadius: '50%',
-                      border: '1px solid #333'
+                    onClick={() => {
+                      if (activeAssigningRes) {
+                        if (isSalettaOccupied) {
+                          alert('La Saletta Privata è già occupata per questa data!');
+                          return;
+                        }
+                        if (isSalettaSelected) {
+                          ['14', '13', '12'].forEach((id) => {
+                            if (onToggleTable) onToggleTable(id);
+                          });
+                        } else {
+                          // Select all 3 saletta tables
+                          ['14', '13', '12'].forEach((id) => {
+                            if (!selectedTables.includes(id) && onToggleTable) {
+                              onToggleTable(id);
+                            }
+                          });
+                        }
+                        return;
+                      }
+                      ['14', '13', '12'].forEach((id) => {
+                        if (onToggleTable) onToggleTable(id);
+                      });
                     }}
-                    title={`Lato Sinistro Posto ${i + 1}`}
-                  ></div>
-                ))}
-
-                {/* 3 Chairs Right */}
-                {[0.2, 0.5, 0.8].map((fraction, i) => (
-                  <div
-                    key={'r-' + i}
+                    className={isSalettaAvailableForRes && !isSalettaSelected ? 'table-box-available' : ''}
                     style={{
-                      position: 'absolute',
-                      right: '-12px',
-                      top: `${fraction * 100}%`,
-                      transform: 'translateY(-50%)',
-                      width: '10px',
-                      height: '10px',
-                      background: '#B5A642',
-                      borderRadius: '50%',
-                      border: '1px solid #333'
+                      width: '140px',
+                      minHeight: '135px',
+                      background: isSalettaSelected
+                        ? '#ECFDF5'
+                        : salettaBooking
+                        ? '#FFFDF5'
+                        : '#FFFFFF',
+                      border: isSalettaSelected
+                        ? '3px solid #059669'
+                        : isSalettaAvailableForRes
+                        ? '2.5px solid #10B981'
+                        : salettaBooking
+                        ? '2px solid #B5A642'
+                        : '2px solid #333333',
+                      position: 'relative',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      padding: '8px 10px',
+                      cursor: activeAssigningRes ? (isSalettaOccupied ? 'not-allowed' : 'pointer') : 'pointer',
+                      opacity: activeAssigningRes && isSalettaOccupied ? 0.6 : 1,
+                      boxShadow: isSalettaSelected
+                        ? '0 4px 14px rgba(5, 150, 105, 0.3)'
+                        : isSalettaAvailableForRes
+                        ? '0 0 12px rgba(16, 185, 129, 0.4)'
+                        : '0 4px 12px rgba(0,0,0,0.08)',
+                      transition: 'all 0.15s ease'
                     }}
-                    title={`Lato Destro Posto ${i + 1}`}
-                  ></div>
-                ))}
-
-                {/* Table Inner Content */}
-                <div style={{ fontSize: '11px', fontWeight: 800, color: 'var(--color-neutral-muted)', marginBottom: '2px' }}>
-                  14 + 13 + 12
-                </div>
-
-                {salettaBooking ? (
-                  <div style={{ textAlign: 'center', width: '100%' }}>
-                    <div style={{ fontSize: '14px', fontWeight: 900, color: '#1C1917', lineHeight: 1.2 }}>
-                      {salettaBooking.customer_name}
-                    </div>
-                    <div style={{ fontSize: '11px', fontWeight: 700, color: '#B5A642', marginTop: '2px' }}>
-                      {salettaBooking.guests_count || 7} pax · {salettaBooking.booking_time}
-                    </div>
+                  >
+                    {/* 1 Capotavola Top */}
                     <div style={{
-                      fontSize: '10px',
-                      fontWeight: 700,
-                      color: salettaBooking.status === 'seated' ? '#059669' : '#1C1917',
-                      background: salettaBooking.status === 'seated' ? '#ECFDF5' : '#FFF5F6',
-                      padding: '2px 6px',
-                      border: '1px solid #FDB4BF',
-                      marginTop: '4px',
-                      display: 'inline-block'
-                    }}>
-                      {salettaBooking.status === 'seated' ? '✓ Al Tavolo (Siede)' : 'Accettata'}
+                      position: 'absolute',
+                      top: '-12px',
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      width: '11px',
+                      height: '11px',
+                      background: isSalettaSelected ? '#059669' : '#B5A642',
+                      borderRadius: '50%',
+                      border: '1.5px solid #333'
+                    }} title="Capotavola (1 posto)"></div>
+
+                    {/* 3 Chairs Left */}
+                    {[0.2, 0.5, 0.8].map((fraction, i) => (
+                      <div
+                        key={'l-' + i}
+                        style={{
+                          position: 'absolute',
+                          left: '-12px',
+                          top: `${fraction * 100}%`,
+                          transform: 'translateY(-50%)',
+                          width: '10px',
+                          height: '10px',
+                          background: isSalettaSelected ? '#059669' : '#B5A642',
+                          borderRadius: '50%',
+                          border: '1px solid #333'
+                        }}
+                        title={`Lato Sinistro Posto ${i + 1}`}
+                      ></div>
+                    ))}
+
+                    {/* 3 Chairs Right */}
+                    {[0.2, 0.5, 0.8].map((fraction, i) => (
+                      <div
+                        key={'r-' + i}
+                        style={{
+                          position: 'absolute',
+                          right: '-12px',
+                          top: `${fraction * 100}%`,
+                          transform: 'translateY(-50%)',
+                          width: '10px',
+                          height: '10px',
+                          background: isSalettaSelected ? '#059669' : '#B5A642',
+                          borderRadius: '50%',
+                          border: '1px solid #333'
+                        }}
+                        title={`Lato Destro Posto ${i + 1}`}
+                      ></div>
+                    ))}
+
+                    {/* Table Inner Content */}
+                    <div style={{ fontSize: '11px', fontWeight: 800, color: isSalettaSelected ? '#059669' : 'var(--color-neutral-muted)', marginBottom: '2px' }}>
+                      14 + 13 + 12
                     </div>
+
+                    {isSalettaSelected ? (
+                      <div style={{ textAlign: 'center', width: '100%' }}>
+                        <div style={{ fontSize: '13px', fontWeight: 900, color: '#059669', lineHeight: 1.2 }}>
+                          ✓ SELEZIONATA
+                        </div>
+                        <div style={{ fontSize: '11px', fontWeight: 700, color: '#111827', marginTop: '2px' }}>
+                          {activeAssigningRes ? activeAssigningRes.customer_name : '7 pax'}
+                        </div>
+                        <div style={{
+                          fontSize: '10px',
+                          fontWeight: 800,
+                          color: '#059669',
+                          background: '#DCFCE7',
+                          padding: '2px 6px',
+                          marginTop: '4px',
+                          display: 'inline-block'
+                        }}>
+                          Pronta per Assegnazione
+                        </div>
+                      </div>
+                    ) : salettaBooking ? (
+                      <div style={{ textAlign: 'center', width: '100%' }}>
+                        <div style={{ fontSize: '13px', fontWeight: 900, color: '#1C1917', lineHeight: 1.2 }}>
+                          🔒 {salettaBooking.customer_name}
+                        </div>
+                        <div style={{ fontSize: '11px', fontWeight: 700, color: '#B5A642', marginTop: '2px' }}>
+                          {salettaBooking.guests_count || 7} pax · {salettaBooking.booking_time}
+                        </div>
+                        <div style={{
+                          fontSize: '10px',
+                          fontWeight: 700,
+                          color: salettaBooking.status === 'seated' ? '#059669' : '#1C1917',
+                          background: salettaBooking.status === 'seated' ? '#ECFDF5' : '#FFF5F6',
+                          padding: '2px 6px',
+                          border: '1px solid #FDB4BF',
+                          marginTop: '4px',
+                          display: 'inline-block'
+                        }}>
+                          {salettaBooking.status === 'seated' ? '✓ Al Tavolo (Siede)' : 'Accettata'}
+                        </div>
+                      </div>
+                    ) : (
+                      <div style={{ textAlign: 'center' }}>
+                        <div style={{ fontSize: '13px', fontWeight: 900, color: '#333333' }}>
+                          Tavolata Saletta
+                        </div>
+                        {isSalettaAvailableForRes ? (
+                          <div style={{
+                            fontSize: '10px',
+                            fontWeight: 800,
+                            color: '#059669',
+                            background: '#DCFCE7',
+                            padding: '2px 6px',
+                            marginTop: '4px',
+                            display: 'inline-block'
+                          }}>
+                            + TOCCA PER SCEGLIERE (7p)
+                          </div>
+                        ) : (
+                          <div style={{
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            color: '#B5A642',
+                            background: '#FFF5F6',
+                            padding: '2px 6px',
+                            border: '1px solid #FDB4BF',
+                            marginTop: '4px',
+                            display: 'inline-block'
+                          }}>
+                            7 pax
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
-                ) : (
-                  <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '14px', fontWeight: 900, color: '#333333' }}>
-                      Tavolata Saletta
-                    </div>
-                    <div style={{
-                      fontSize: '11px',
-                      fontWeight: 700,
-                      color: '#B5A642',
-                      background: '#FFF5F6',
-                      padding: '2px 6px',
-                      border: '1px solid #FDB4BF',
-                      marginTop: '4px',
-                      display: 'inline-block'
-                    }}>
-                      7 pax
-                    </div>
-                  </div>
-                )}
-              </div>
+                );
+              })()}
             </div>
           ) : (
             /* SALETTA GRID OF QUADRATINI (3 Cols x 2 Rows: 14 is Row 0 Col 0, 12 is Row 1 Col 0, 13 is Row 1 Col 1) */
@@ -651,6 +737,12 @@ export default function TablePlan({
                     <div
                       key={cellKey}
                       onClick={() => {
+                        if (activeAssigningRes) {
+                          if (table && onToggleTable) {
+                            onToggleTable(table.id);
+                          }
+                          return;
+                        }
                         if (activeTableId && !table) {
                           moveTableToCell(activeTableId, r, c, 'saletta');
                         } else if (table) {
@@ -678,7 +770,7 @@ export default function TablePlan({
                           : table
                           ? '#FFFFFF'
                           : '#FAFAFA',
-                        cursor: isActiveForMove ? 'pointer' : table ? 'grab' : 'default',
+                        cursor: activeAssigningRes && table ? 'pointer' : isActiveForMove ? 'pointer' : table ? 'grab' : 'default',
                         transition: 'background 0.15s ease'
                       }}
                       title={isActiveForMove ? `Sposta tavolo qui in Saletta (riga ${r + 1}, col ${c + 1})` : undefined}
@@ -699,7 +791,8 @@ export default function TablePlan({
                         assignment,
                         activeTableId,
                         setDraggedTableId,
-                        setActiveTableId
+                        setActiveTableId,
+                        activeAssigningRes
                       })}
                     </div>
                   );
@@ -745,15 +838,16 @@ export default function TablePlan({
           Tavolo Libero
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <span style={{ width: '12px', height: '12px', background: '#DCFCE7', border: '1.5px solid #10B981' }}></span>
+          Disponibile (+ Tocca)
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <span style={{ width: '12px', height: '12px', background: '#ECFDF5', border: '2px solid #059669' }}></span>
+          Selezionato (Scelto)
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <span style={{ width: '12px', height: '12px', background: '#FFFDF5', border: '1.5px solid #B5A642' }}></span>
-          Assegnato / Riservato (Nome Cliente)
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ width: '12px', height: '12px', background: '#FFF5F6', border: '2px solid #333333' }}></span>
-          Selezionato
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ width: '12px', height: '12px', border: '1px dashed #B5A642' }}></span>
+          Occupato (🔒 Altro Cliente)
         </div>
       </div>
         </div>
@@ -770,31 +864,39 @@ function renderTableBox({
   assignment,
   activeTableId,
   setDraggedTableId,
-  setActiveTableId
+  setActiveTableId,
+  activeAssigningRes
 }) {
   const isSeated = assignment && assignment.status === 'seated';
+  const isAssignedToOther = assignment && (!activeAssigningRes || assignment.id !== activeAssigningRes.id);
+  const isAvailableForRes = activeAssigningRes && !isAssignedToOther && !isOccupied && !isSelected;
+  const canDrag = !activeAssigningRes;
 
   return (
     <div
-      draggable
+      draggable={canDrag}
       onDragStart={(e) => {
+        if (!canDrag) return;
         setDraggedTableId(table.id);
         setActiveTableId(table.id);
         e.dataTransfer.setData('text/plain', table.id);
       }}
+      className={isAvailableForRes ? 'table-box-available' : ''}
       style={{
         width: '66px',
         height: '66px',
         position: 'relative',
         background: isSelected
-          ? '#FFF5F6'
-          : isSeated
           ? '#ECFDF5'
-          : assignment
+          : isSeated
+          ? '#F0FDF4'
+          : isAssignedToOther
           ? '#FFFDF5'
           : '#FFFFFF',
         border: isSelected
-          ? '2px solid #333333'
+          ? '2.5px solid #059669'
+          : isAvailableForRes
+          ? '2px solid #10B981'
           : activeTableId === table.id
           ? '2px solid #B5A642'
           : isSeated
@@ -808,14 +910,87 @@ function renderTableBox({
         alignItems: 'center',
         justifyContent: 'center',
         userSelect: 'none',
-        boxShadow: isSelected ? '0 2px 6px rgba(0,0,0,0.1)' : 'none',
+        boxShadow: isSelected
+          ? '0 3px 8px rgba(5, 150, 105, 0.25)'
+          : isAvailableForRes
+          ? '0 0 10px rgba(16, 185, 129, 0.35)'
+          : 'none',
+        cursor: activeAssigningRes
+          ? (isAssignedToOther ? 'not-allowed' : 'pointer')
+          : 'grab',
+        opacity: activeAssigningRes && isAssignedToOther ? 0.55 : 1,
         transition: 'all 0.15s ease'
       }}
     >
       {/* Chairs around table */}
-      {renderChairs(table.chairs || ['top', 'bottom'], isSelected || !!assignment)}
+      {renderChairs(table.chairs || ['top', 'bottom'], isSelected || isAvailableForRes || !!assignment)}
 
-      {assignment ? (
+      {/* When table is selected for current reservation */}
+      {isSelected ? (
+        <div style={{ textAlign: 'center', width: '100%', padding: '0 2px' }}>
+          <div style={{ fontSize: '13px', fontWeight: 900, color: '#059669', lineHeight: 1 }}>
+            ✓ {table.label}
+          </div>
+          <div style={{
+            fontSize: '9px',
+            fontWeight: 800,
+            color: '#065F46',
+            background: '#A7F3D0',
+            padding: '1px 3px',
+            marginTop: '3px',
+            textOverflow: 'ellipsis',
+            overflow: 'hidden',
+            whiteSpace: 'nowrap'
+          }}>
+            SCELTO
+          </div>
+        </div>
+      ) : isAssignedToOther ? (
+        <div style={{ textAlign: 'center', width: '100%', padding: '0 2px', overflow: 'hidden' }}>
+          <div style={{ fontSize: '12px', fontWeight: 900, color: '#1C1917', lineHeight: 1 }}>
+            🔒 {table.label}
+          </div>
+          <div
+            style={{
+              fontSize: '10px',
+              fontWeight: 800,
+              color: isSeated ? '#059669' : '#B5A642',
+              marginTop: '2px',
+              textOverflow: 'ellipsis',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              maxWidth: '60px'
+            }}
+            title={assignment.customer_name}
+          >
+            {assignment.customer_name}
+          </div>
+          <div style={{ fontSize: '9px', color: '#666', marginTop: '1px' }}>
+            {assignment.guests_count || table.pax}p · {assignment.booking_time}
+          </div>
+        </div>
+      ) : isAvailableForRes ? (
+        <>
+          <div style={{
+            fontSize: '16px',
+            fontWeight: 900,
+            color: '#111827',
+            lineHeight: 1
+          }}>
+            {table.label}
+          </div>
+          <div style={{
+            fontSize: '9px',
+            fontWeight: 800,
+            color: '#059669',
+            background: '#DCFCE7',
+            padding: '1px 4px',
+            marginTop: '3px'
+          }}>
+            + TOCCA ({table.pax}p)
+          </div>
+        </>
+      ) : assignment ? (
         <div style={{ textAlign: 'center', width: '100%', padding: '0 2px', overflow: 'hidden' }}>
           <div style={{ fontSize: '13px', fontWeight: 900, color: '#1C1917', lineHeight: 1 }}>
             {table.label}
@@ -844,7 +1019,7 @@ function renderTableBox({
           <div style={{
             fontSize: '17px',
             fontWeight: 800,
-            color: isSelected ? '#1C1917' : '#333333',
+            color: '#333333',
             lineHeight: 1
           }}>
             {table.label}

@@ -74,7 +74,7 @@ const SEED_RESERVATIONS = [
     service_type: 'dinner',
     notes: '',
     status: 'seated', // Siede
-    assigned_tables: ['2']
+    assigned_tables: ['5'] // Tavolo 5 in modo che 2, 3, 4 siano liberi per Julian Andersen o gruppi da 6-8 pax
   }
 ];
 
@@ -86,7 +86,8 @@ export const RESTAURANT_COMBOS = [
   { id: 'pair-7-8', tables: ['7', '8'], label: 'Tavolo 7 + 8', zone: 'Parete Sinistra', pax: 4 },
   { id: 'pair-5-6', tables: ['5', '6'], label: 'Tavolo 5 + 6', zone: 'Centro Sala', pax: 4 },
   { id: 'pair-3-4', tables: ['3', '4'], label: 'Tavolo 3 + 4', zone: 'Parete Destra', pax: 4 },
-  { id: 'saletta-banquet', tables: ['14', '13', '12'], label: 'Saletta Privata (14+13+12)', zone: 'Saletta', pax: 7, isSaletta: true }
+  { id: 'trio-2-3-4', tables: ['2', '3', '4'], label: 'Tavolata Parete Destra (2 + 3 + 4)', zone: 'Parete Destra (Uniti 6-8p)', pax: 8, isTrio: true },
+  { id: 'saletta-banquet', tables: ['14', '13', '12'], label: 'Saletta Privata (14 + 13 + 12)', zone: 'Saletta Unita (7p)', pax: 7, isSaletta: true }
 ];
 
 export const SINGLE_TABLE_OPTIONS = [
@@ -132,7 +133,7 @@ export default function AdminPage({ onNavigateToBooking }) {
   // Reservations state with persistence
   const [reservations, setReservations] = useState(() => {
     try {
-      const saved = localStorage.getItem('pupi_admin_reservations_v3');
+      const saved = localStorage.getItem('pupi_admin_reservations_v4');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
@@ -163,7 +164,7 @@ export default function AdminPage({ onNavigateToBooking }) {
   // Save reservations to localStorage
   useEffect(() => {
     try {
-      localStorage.setItem('pupi_admin_reservations_v3', JSON.stringify(reservations));
+      localStorage.setItem('pupi_admin_reservations_v4', JSON.stringify(reservations));
     } catch {}
   }, [reservations]);
 
@@ -283,14 +284,25 @@ export default function AdminPage({ onNavigateToBooking }) {
       });
     }
 
-    // 5 to 7 pax: Saletta banquet
+    // 5 to 8 pax: Saletta banquet or Trio Parete Destra (2 + 3 + 4)
+    const options = [];
+    const trioFree = ['2', '3', '4'].every(
+      (tid) => !tableAssignments[tid] || tableAssignments[tid].id === res.id
+    );
+    if (trioFree) {
+      const t = RESTAURANT_COMBOS.find((c) => c.isTrio);
+      if (t) options.push(t);
+    }
+
     const salettaFree = ['14', '13', '12'].every(
       (tid) => !tableAssignments[tid] || tableAssignments[tid].id === res.id
     );
     if (salettaFree) {
-      return RESTAURANT_COMBOS.filter((c) => c.isSaletta);
+      const s = RESTAURANT_COMBOS.find((c) => c.isSaletta);
+      if (s) options.push(s);
     }
-    return [];
+
+    return options;
   };
 
   // 1-Click Apply Combo
@@ -300,6 +312,11 @@ export default function AdminPage({ onNavigateToBooking }) {
       setIsSalettaMerged(true);
       try {
         localStorage.setItem('pupi_saletta_merged', 'true');
+      } catch {}
+    } else {
+      setIsSalettaMerged(false);
+      try {
+        localStorage.setItem('pupi_saletta_merged', 'false');
       } catch {}
     }
   };
@@ -312,14 +329,22 @@ export default function AdminPage({ onNavigateToBooking }) {
 
     if (existing.length > 0) {
       setStaffSelectedTables(existing);
+      const isSaletta = ['14', '13', '12'].every((t) => existing.includes(t));
+      setIsSalettaMerged(isSaletta);
     } else {
       // Game-like smart auto-proposal:
       if (guests >= 5) {
-        setStaffSelectedTables(['14', '13', '12']);
-        setIsSalettaMerged(true);
-        try {
-          localStorage.setItem('pupi_saletta_merged', 'true');
-        } catch {}
+        // Prefer 2 + 3 + 4 if free, else Saletta
+        const trioFree = ['2', '3', '4'].every(
+          (tid) => !tableAssignments[tid] || tableAssignments[tid].id === res.id
+        );
+        if (trioFree) {
+          setStaffSelectedTables(['2', '3', '4']);
+          setIsSalettaMerged(false);
+        } else {
+          setStaffSelectedTables(['14', '13', '12']);
+          setIsSalettaMerged(true);
+        }
       } else if (guests <= 4 && guests > 2) {
         // Pick first completely free 4-pax pair
         const freePair = RESTAURANT_COMBOS.find(
@@ -403,7 +428,8 @@ export default function AdminPage({ onNavigateToBooking }) {
       return;
     }
 
-    // 5+ Pax: Saletta tables (14, 13, 12)
+    // 5+ Pax (6, 7, 8 pax):
+    // Saletta tables (14, 13, 12)
     if (['14', '13', '12'].includes(id)) {
       setStaffSelectedTables(['14', '13', '12']);
       setIsSalettaMerged(true);
@@ -413,12 +439,33 @@ export default function AdminPage({ onNavigateToBooking }) {
       return;
     }
 
-    if (staffSelectedTables.length >= 3) {
-      alert(`Hai già raggiunto la capienza massima per questa prenotazione (${guests} persone).`);
+    // Parete Destra (2, 3, 4)
+    if (['2', '3', '4'].includes(id)) {
+      setIsSalettaMerged(false);
+      try {
+        localStorage.setItem('pupi_saletta_merged', 'false');
+      } catch {}
+
+      // If switching from Saletta or empty, 1-tap select all 3
+      const hadSaletta = staffSelectedTables.some((t) => ['14', '13', '12'].includes(t));
+      if (staffSelectedTables.length === 0 || hadSaletta) {
+        const trioFree = ['2', '3', '4'].every(
+          (tid) => !tableAssignments[tid] || tableAssignments[tid].id === activeAssigningRes.id
+        );
+        if (trioFree) {
+          setStaffSelectedTables(['2', '3', '4']);
+          return;
+        }
+      }
+    }
+
+    const cleanSelection = staffSelectedTables.filter((t) => !['14', '13', '12'].includes(t));
+    if (cleanSelection.length >= 3) {
+      alert(`Hai già raggiunto la capienza massima per questa prenotazione (${guests} persone: 3 tavoli uniti da 8 posti).`);
       return;
     }
 
-    setStaffSelectedTables([...staffSelectedTables, id]);
+    setStaffSelectedTables([...cleanSelection, id]);
   };
 
   // Quick 1-tap Saletta assignment (14, 13, 12)
@@ -474,14 +521,20 @@ export default function AdminPage({ onNavigateToBooking }) {
     setStaffSelectedTables([]);
   };
 
+  const isReadyToConfirm = () => {
+    if (!activeAssigningRes) return false;
+    const guests = parseInt(activeAssigningRes.guests_count, 10) || 2;
+    if (guests <= 2) return staffSelectedTables.length === 1;
+    if (guests <= 4) return staffSelectedTables.length === 2;
+    // 5 to 8 pax: 3 tables united (covers 6, 7, 8 pax)
+    return staffSelectedTables.length === 3;
+  };
+
   const calculateStaffCapacity = () => {
-    return staffSelectedTables.reduce((acc, tid) => {
-      if (tableConfigs && tableConfigs[tid] && typeof tableConfigs[tid].pax === 'number') {
-        return acc + tableConfigs[tid].pax;
-      }
-      const t = TABLES.find((item) => item.id === tid);
-      return acc + (t ? t.pax : 2);
-    }, 0);
+    if (staffSelectedTables.length >= 3) return 8;
+    if (staffSelectedTables.length === 2) return 4;
+    if (staffSelectedTables.length === 1) return 2;
+    return 0;
   };
 
   const formattedDate = formatDateItalian(selectedDate);
@@ -941,14 +994,16 @@ export default function AdminPage({ onNavigateToBooking }) {
                 <button
                   type="button"
                   onClick={confirmAssignment}
-                  disabled={calculateStaffCapacity() < activeAssigningRes.guests_count}
+                  disabled={!isReadyToConfirm()}
                   className="game-btn-confirm"
                 >
                   <Check size={20} />
                   <span>
-                    {calculateStaffCapacity() >= activeAssigningRes.guests_count
-                      ? `CONFERMA E ASSEGNA TAVOLO ${staffSelectedTables.join(' + ')}`
-                      : `Seleziona i tavoli per coprire ${activeAssigningRes.guests_count} persone`}
+                    {isReadyToConfirm()
+                      ? `CONFERMA E ASSEGNA ${staffSelectedTables.length === 3 ? 'TAVOLATA UNITA' : 'TAVOLO'} (${staffSelectedTables.join(' + ')})`
+                      : staffSelectedTables.length === 0
+                      ? `Seleziona i tavoli per coprire ${activeAssigningRes.guests_count} persone`
+                      : `Seleziona ancora ${ (activeAssigningRes.guests_count <= 2 ? 1 : activeAssigningRes.guests_count <= 4 ? 2 : 3) - staffSelectedTables.length } tavolo/i per confermare`}
                   </span>
                 </button>
 

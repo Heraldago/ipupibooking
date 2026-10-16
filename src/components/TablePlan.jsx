@@ -194,6 +194,22 @@ export default function TablePlan({
   const salettaBooking =
     tableAssignments['14'] || tableAssignments['13'] || tableAssignments['12'] || null;
 
+  // Check if Trio (2, 3, 4) on Parete Destra is selected or assigned
+  const isTrio234Selected =
+    selectedTables.includes('2') &&
+    selectedTables.includes('3') &&
+    selectedTables.includes('4');
+
+  const isTrio234Assigned =
+    tableAssignments['2'] &&
+    tableAssignments['3'] &&
+    tableAssignments['4'] &&
+    tableAssignments['2'].id === tableAssignments['3'].id &&
+    tableAssignments['3'].id === tableAssignments['4'].id;
+
+  const isTrio234United = isTrio234Selected || isTrio234Assigned;
+  const trioAssignedBooking = isTrio234Assigned ? tableAssignments['2'] : null;
+
   return (
     <div style={{ background: '#FFFFFF', border: '1px solid #D1D5DB', borderRadius: '0px', padding: '20px' }}>
       {/* Top Toolbar */}
@@ -368,6 +384,104 @@ export default function TablePlan({
             const assignment = table ? tableAssignments[table.id] : null;
             const isActiveForMove = activeTableId && !table;
 
+            // SPECIAL CASE: Continuous bridge for United Trio 2 + 3 + 4 along Parete Destra (col 6, rows 1 & 3)
+            if (isTrio234United && c === 6 && (r === 1 || r === 3)) {
+              return (
+                <div
+                  key={cellKey}
+                  onClick={() => {
+                    if (activeAssigningRes && onToggleTable) {
+                      if (!isTrio234Selected) {
+                        if (!selectedTables.includes('2')) onToggleTable('2');
+                        if (!selectedTables.includes('3')) onToggleTable('3');
+                        if (!selectedTables.includes('4')) onToggleTable('4');
+                      } else {
+                        onToggleTable('2');
+                      }
+                    }
+                  }}
+                  style={{
+                    position: 'relative',
+                    borderRight: 'none',
+                    borderBottom: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: '#FAF6F4',
+                    cursor: activeAssigningRes ? 'pointer' : 'default',
+                    boxSizing: 'border-box'
+                  }}
+                  title="Tavolata Parete Destra (Unita per 6-8 persone)"
+                >
+                  <div
+                    style={{
+                      width: '66px',
+                      height: '100%',
+                      position: 'relative',
+                      background: isTrio234Selected ? '#ECFDF5' : '#FFFDF5',
+                      borderLeft: isTrio234Selected ? '2.5px solid #059669' : '2px solid #B5A642',
+                      borderRight: isTrio234Selected ? '2.5px solid #059669' : '2px solid #B5A642',
+                      borderTop: 'none',
+                      borderBottom: 'none',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxSizing: 'border-box',
+                      boxShadow: isTrio234Selected ? '0 0 10px rgba(5, 150, 105, 0.2)' : 'none'
+                    }}
+                  >
+                    {/* Lateral chair dots on Left and Right of the bridge */}
+                    <div
+                      style={{
+                        position: 'absolute',
+                        left: '-8px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        width: '6px',
+                        height: '6px',
+                        borderRadius: '50%',
+                        background: isTrio234Selected ? '#059669' : '#B5A642'
+                      }}
+                      title="Posto Laterale Tavolata"
+                    />
+                    <div
+                      style={{
+                        position: 'absolute',
+                        right: '-8px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        width: '6px',
+                        height: '6px',
+                        borderRadius: '50%',
+                        background: isTrio234Selected ? '#059669' : '#B5A642'
+                      }}
+                      title="Posto Laterale Tavolata"
+                    />
+
+                    {/* United bridge indicator */}
+                    <div
+                      style={{
+                        fontSize: '9px',
+                        fontWeight: 900,
+                        color: isTrio234Selected ? '#059669' : '#B5A642',
+                        background: isTrio234Selected ? '#DCFCE7' : '#FEF3C7',
+                        padding: '2px 4px',
+                        letterSpacing: '0.5px'
+                      }}
+                    >
+                      🔗 UNITO
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+
+            const isTrioCol = isTrio234United && c === 6;
+            const cellAlign = isTrioCol
+              ? (r === 0 ? 'flex-end' : r === 4 ? 'flex-start' : 'center')
+              : 'center';
+
             return (
               <div
                 key={cellKey}
@@ -397,9 +511,9 @@ export default function TablePlan({
                 style={{
                   position: 'relative',
                   borderRight: c < MAIN_COLS - 1 ? '1px solid #E5E7EB' : 'none',
-                  borderBottom: r < MAIN_ROWS - 1 ? '1px solid #E5E7EB' : 'none',
+                  borderBottom: isTrioCol ? 'none' : (r < MAIN_ROWS - 1 ? '1px solid #E5E7EB' : 'none'),
                   display: 'flex',
-                  alignItems: 'center',
+                  alignItems: cellAlign,
                   justifyContent: 'center',
                   background: isActiveForMove
                     ? 'rgba(253, 180, 191, 0.12)'
@@ -428,7 +542,10 @@ export default function TablePlan({
                   activeTableId,
                   setDraggedTableId,
                   setActiveTableId,
-                  activeAssigningRes
+                  activeAssigningRes,
+                  isTrio234United,
+                  isTrio234Selected,
+                  trioAssignedBooking
                 })}
               </div>
             );
@@ -865,8 +982,167 @@ function renderTableBox({
   activeTableId,
   setDraggedTableId,
   setActiveTableId,
-  activeAssigningRes
+  activeAssigningRes,
+  isTrio234United,
+  isTrio234Selected,
+  trioAssignedBooking
 }) {
+  // SPECIAL CASE: Unified Banquet on Parete Destra (Tables 2, 3, 4)
+  if (isTrio234United && ['2', '3', '4'].includes(table.id)) {
+    const isTop = table.id === '2';
+    const isMid = table.id === '3';
+    const isBot = table.id === '4';
+
+    const bg = isTrio234Selected ? '#ECFDF5' : '#FFFDF5';
+    const borderCol = isTrio234Selected ? '#059669' : '#B5A642';
+    const borderWidth = isTrio234Selected ? '2.5px' : '2px';
+
+    return (
+      <div
+        draggable={false}
+        style={{
+          width: '66px',
+          height: isMid ? '100%' : '76px',
+          position: 'relative',
+          background: bg,
+          borderLeft: `${borderWidth} solid ${borderCol}`,
+          borderRight: `${borderWidth} solid ${borderCol}`,
+          borderTop: isTop ? `${borderWidth} solid ${borderCol}` : 'none',
+          borderBottom: isBot ? `${borderWidth} solid ${borderCol}` : 'none',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxSizing: 'border-box',
+          cursor: activeAssigningRes ? 'pointer' : 'default',
+          boxShadow: isTrio234Selected ? '0 0 12px rgba(5, 150, 105, 0.25)' : 'none'
+        }}
+        title={`Tavolata Parete Destra - Tavolo ${table.id} (Unito per 6-8 pax)`}
+      >
+        {/* Capotavola Top Chair for Table 2 */}
+        {isTop && (
+          <div
+            style={{
+              position: 'absolute',
+              top: '-8px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              width: '7px',
+              height: '7px',
+              borderRadius: '50%',
+              background: borderCol,
+              border: '1px solid #111'
+            }}
+            title="Capotavola Nord (1 posto)"
+          />
+        )}
+
+        {/* Capotavola Bottom Chair for Table 4 */}
+        {isBot && (
+          <div
+            style={{
+              position: 'absolute',
+              bottom: '-8px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              width: '7px',
+              height: '7px',
+              borderRadius: '50%',
+              background: borderCol,
+              border: '1px solid #111'
+            }}
+            title="Capotavola Sud (1 posto)"
+          />
+        )}
+
+        {/* Side Chairs (Left & Right) */}
+        <div
+          style={{
+            position: 'absolute',
+            left: '-8px',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            width: '6px',
+            height: '6px',
+            borderRadius: '50%',
+            background: borderCol
+          }}
+          title={`Lato Sinistro - Tavolo ${table.id}`}
+        />
+        <div
+          style={{
+            position: 'absolute',
+            right: '-8px',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            width: '6px',
+            height: '6px',
+            borderRadius: '50%',
+            background: borderCol
+          }}
+          title={`Lato Destro - Tavolo ${table.id}`}
+        />
+
+        {/* Content Inside Each Segment */}
+        {isTop && (
+          <div style={{ textAlign: 'center', width: '100%', padding: '0 2px' }}>
+            <div style={{ fontSize: '13px', fontWeight: 900, color: borderCol, lineHeight: 1 }}>
+              {isTrio234Selected ? '✓ 2' : '2'}
+            </div>
+            <div style={{ fontSize: '9px', fontWeight: 800, color: '#666', marginTop: '3px' }}>
+              Capotavola
+            </div>
+          </div>
+        )}
+
+        {isMid && (
+          <div style={{ textAlign: 'center', width: '100%', padding: '0 2px' }}>
+            <div style={{ fontSize: '11px', fontWeight: 900, color: borderCol, lineHeight: 1, marginBottom: '2px' }}>
+              3 · TAVOLATA
+            </div>
+            <div
+              style={{
+                fontSize: '11px',
+                fontWeight: 800,
+                color: '#1C1917',
+                lineHeight: 1.1,
+                maxWidth: '62px',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap'
+              }}
+              title={isTrio234Selected ? (activeAssigningRes?.customer_name || 'Gruppo') : (trioAssignedBooking?.customer_name || 'Tavolo 3')}
+            >
+              {isTrio234Selected ? (activeAssigningRes?.customer_name || 'Gruppo') : (trioAssignedBooking?.customer_name || 'Tavolo 3')}
+            </div>
+            <div style={{
+              fontSize: '8px',
+              fontWeight: 800,
+              color: isTrio234Selected ? '#065F46' : '#B5A642',
+              background: isTrio234Selected ? '#A7F3D0' : '#FEF3C7',
+              padding: '1px 3px',
+              marginTop: '3px',
+              display: 'inline-block'
+            }}>
+              {isTrio234Selected ? '✓ 6-8 PAX' : `${trioAssignedBooking?.guests_count || 8}p`}
+            </div>
+          </div>
+        )}
+
+        {isBot && (
+          <div style={{ textAlign: 'center', width: '100%', padding: '0 2px' }}>
+            <div style={{ fontSize: '13px', fontWeight: 900, color: borderCol, lineHeight: 1 }}>
+              {isTrio234Selected ? '✓ 4' : '4'}
+            </div>
+            <div style={{ fontSize: '9px', fontWeight: 800, color: '#666', marginTop: '3px' }}>
+              Capotavola
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   const isSeated = assignment && assignment.status === 'seated';
   const isAssignedToOther = assignment && (!activeAssigningRes || assignment.id !== activeAssigningRes.id);
   const isAvailableForRes = activeAssigningRes && !isAssignedToOther && !isOccupied && !isSelected;
